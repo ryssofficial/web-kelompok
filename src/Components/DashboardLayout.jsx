@@ -87,7 +87,10 @@ export const DashboardLayout = ({ role, children, activeMenu }) => {
                             icon={item.icon}
                             label={item.label}
                             isActive={activeMenu === item.label}
-                            onClick={() => console.log(`Navigasi ke: ${item.label}`)}
+                            onClick={() => {
+                                    navigate(item.label);
+                                    console.log(`Navigasi ke: ${item.label}`);
+                            }}
                         />
                     ))}
                 </nav>
