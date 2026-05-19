@@ -1,8 +1,24 @@
 import { useState, useEffect, useCallback } from "react";
-import { KasFitur } from "../API/EriskaResponse/KasFitur";
-import { TabunganFitur } from "../API/EriskaResponse/TabunganFitur";
+import { useParams, useNavigate } from "react-router-dom";
+import { KasFitur } from "../API/EriskaFitur/KasResponse";
+import { TabunganFitur } from "../API/EriskaFitur/TabunganResponse";
 import { AxiosConfig } from "../API/AxiosConfig";
-import { DeleteButton } from "../Components/Button/DeleteButton";
+import { DashboardLayout } from "../Components/DashboardLayout";
+
+// DeleteButton di-inline agar tidak bergantung pada path eksternal
+const DeleteButton = ({ id, onDelete }) => (
+    <button
+        onClick={() => onDelete(id)}
+        style={{
+            background: "#fee2e2", color: "#dc2626",
+            border: "1px solid #fca5a5", borderRadius: 6,
+            padding: "5px 12px", fontSize: 12,
+            cursor: "pointer", fontWeight: 600,
+        }}
+    >
+        🗑️ Hapus
+    </button>
+);
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -493,33 +509,38 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 const KeuanganPage = () => {
+    const { role } = useParams();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("kas");
 
     // Data guru & rombel di-fetch dari API
     const [idGuru, setIdGuru] = useState(null);
     const [idRombel, setIdRombel] = useState(null);
     const [idKas, setIdKas] = useState(null);
-    const [namaGuru, setNamaGuru] = useState("");
     const [isGuru, setIsGuru] = useState(false);
     const [loadInit, setLoadInit] = useState(true);
     const [errorInit, setErrorInit] = useState(null);
 
     useEffect(() => {
+        // Redirect jika role tidak valid
+        if (role !== "guru" && role !== "siswa") {
+            navigate("/", { replace: true });
+            return;
+        }
+
         const init = async () => {
             setLoadInit(true);
             try {
-                // Ambil profil user yang sedang login
-                // Endpoint GET /api/auth/profile mengembalikan: {id_guru, nama_guru, role, id_rombel}
+                // Endpoint GET /api/auth/profile → { id_guru, role, id_rombel }
                 const profile = await AxiosConfig.get("/auth/profile");
 
                 const guru = profile?.id_guru ?? null;
                 const rombel = profile?.id_rombel ?? null;
-                const role = profile?.role ?? "siswa";
+                const profileRole = profile?.role ?? "siswa";
 
                 setIdGuru(guru);
                 setIdRombel(rombel);
-                setNamaGuru(profile?.nama_guru || "");
-                setIsGuru(role === "guru");
+                setIsGuru(profileRole === "guru");
 
                 // Ambil id_kas berdasarkan id_rombel
                 if (rombel) {
@@ -538,7 +559,7 @@ const KeuanganPage = () => {
             }
         };
         init();
-    }, []);
+    }, [role, navigate]);
 
     // ── Styles Tab ──
     const tabStyle = (tab) => ({
@@ -554,31 +575,23 @@ const KeuanganPage = () => {
     });
 
     if (loadInit) return (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
-            <p style={{ color: "#94a3b8", fontSize: 14 }}>⏳ Memuat halaman keuangan...</p>
-        </div>
+        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
+                <p style={{ color: "#94a3b8", fontSize: 14 }}>⏳ Memuat halaman keuangan...</p>
+            </div>
+        </DashboardLayout>
     );
 
     if (errorInit) return (
-        <div style={{ padding: 24, color: "#dc2626", background: "#fef2f2", borderRadius: 12 }}>
-            ⚠️ {errorInit}
-        </div>
+        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
+            <div style={{ padding: 24, color: "#dc2626", background: "#fef2f2", borderRadius: 12 }}>
+                ⚠️ {errorInit}
+            </div>
+        </DashboardLayout>
     );
 
     return (
-        <div style={{ padding: "24px", maxWidth: 960, margin: "0 auto", fontFamily: "sans-serif" }}>
-
-            {/* Header */}
-            <div style={{ marginBottom: 24 }}>
-                <h2 style={{ margin: 0, color: "#1e293b", fontSize: 22, fontWeight: 700 }}>
-                    💰 Keuangan Kelas
-                </h2>
-                <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: 13 }}>
-                    {isGuru
-                        ? `Selamat datang, ${namaGuru} — Anda dapat mengelola kas dan tabungan siswa.`
-                        : "Anda dapat melihat data keuangan kelas."}
-                </p>
-            </div>
+        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
 
             {/* Tab Navigation */}
             <div style={{
@@ -614,7 +627,8 @@ const KeuanganPage = () => {
                     />
                 )}
             </div>
-        </div>
+
+        </DashboardLayout>
     );
 };
 
