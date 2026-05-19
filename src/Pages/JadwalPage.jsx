@@ -12,7 +12,7 @@ export const JadwalPage = () => {
     const [formData, setFormData] = useState({
         hari: "",
         waktu: "",
-        mataPelajaran: "",
+        mataPelajaran: "", 
         kelas: ""
     });
 
