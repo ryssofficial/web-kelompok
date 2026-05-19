@@ -48,7 +48,6 @@ export const DashboardLayout = ({ role, children, activeMenu }) => {
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: HappyHuesTheme.background, color: HappyHuesTheme.stroke }}>
-            {/* SIDEBAR */}
             <aside style={{
                 width: '300px',
                 backgroundColor: HappyHuesTheme.main,
@@ -61,7 +60,6 @@ export const DashboardLayout = ({ role, children, activeMenu }) => {
                 zIndex: 100,
                 boxSizing: 'border-box'
             }}>
-                {/* Logo Area - Dibuat lebih estetik dan mencolok */}
                 <div style={{ 
                     marginBottom: '40px',
                     padding: '20px 15px',
@@ -79,7 +77,6 @@ export const DashboardLayout = ({ role, children, activeMenu }) => {
                     </p>
                 </div>
 
-                {/* Navigasi Utama */}
                 <nav style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '5px' }}>
                     {menus.map((item, index) => (
                         <SidebarItem
@@ -88,20 +85,20 @@ export const DashboardLayout = ({ role, children, activeMenu }) => {
                             label={item.label}
                             isActive={activeMenu === item.label}
                             onClick={() => {
-                                    navigate(item.label);
-                                    console.log(`Navigasi ke: ${item.label}`);
+                                const pagePath = item.label.toLowerCase().replace(/\s+/g, '-');
+                                const rolePath = role.toLowerCase();
+                                navigate(`/${rolePath}/${pagePath}`);
                             }}
                         />
                     ))}
                 </nav>
 
-                {/* Area Bawah - Profil & Logout */}
                 <div style={{ borderTop: `4px dashed ${HappyHuesTheme.stroke}`, paddingTop: '20px', marginTop: '20px' }}>
                     <SidebarItem 
                         icon="👤" 
                         label="Profil Saya" 
                         isActive={activeMenu === "Profil Saya"} 
-                        onClick={() => {}} 
+                        onClick={() => {navigate(`/${role.toLowerCase()}/profil`)}}
                     />
                     <SidebarItem 
                         icon="🚪" 

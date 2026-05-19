@@ -1,20 +1,37 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import LandingPage from './Pages/LandingPages';
 import LoginPage from './Pages/LoginPage';
-import { JadwalPage } from "./Pages/JadwalPage";
-import DashboardPage from './Pages/DashboardPage'; // Import file tunggal tadi
+import DashboardPage from './Pages/DashboardPage';
+import NotifikasiPage from './Pages/NotifikasiPage';
+import JadwalPage from './Pages/JadwalPage';
+
+// ✅ Wrapper kecil — ambil :role dari URL, kapitalisasi, kirim ke JadwalPage
+const JadwalPageWrapper = () => {
+    const { role } = useParams();                                           // 'guru' atau 'siswa'
+    const roleProp = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Siswa'; // → 'Guru' atau 'Siswa'
+    return <JadwalPage role={roleProp} />;
+};
 
 export default function App() {
     return (
         <Router>
             <Routes>
+                {/* Auth & Landing */}
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/jadwal" element={<JadwalPage />} />
-
-                {/* Route Dinamis: Parameter :role bisa diisi 'guru' atau 'siswa' */}
+                
+                {/* Core Dashboard */}
                 <Route path="/:role/dashboard" element={<DashboardPage />} />
+                <Route path="/:role/notifikasi" element={<NotifikasiPage />} />
 
+                {/* Fitur Jadwal Dinamis Berdasarkan Role Sidebar */}
+                <Route path="/:role/jadwal-mengajar" element={<JadwalPageWrapper />} />
+                <Route path="/:role/jadwal-pelajaran" element={<JadwalPageWrapper />} />
+                
+                {/* Fallback route jadwal static jika diperlukan */}
+                <Route path="/jadwal" element={<JadwalPage role="Guru" />} />
+
+                {/* Redirect jika path tidak ditemukan */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>
