@@ -509,4 +509,4 @@ const JadwalPage = ({ role = 'Guru' }) => {
     );
 };
 
-export default JadwalPagecls
+export default JadwalPage
