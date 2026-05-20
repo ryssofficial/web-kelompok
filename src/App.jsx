@@ -4,6 +4,8 @@ import LoginPage from './Pages/LoginPage';
 import DashboardPage from './Pages/DashboardPage';
 import NotifikasiPage from './Pages/NotifikasiPage';
 import KeuanganPage from './Pages/KeuanganPage';
+import AbsensiFitur from './Pages/AbsensiFitur';
+import NilaiTugasFitur from './Pages/NilaiTugasFitur';
 
 const KeuanganPageWrapper = () => {
     const {role} = useParams();
@@ -23,6 +25,8 @@ export default function App() {
                 <Route path="/:role/kas-kelas"  element={<KeuanganPageWrapper />} />
                 <Route path="/:role/validasi-tabungan" element={<KeuanganPageWrapper />} />
 
+                <Route path="/:role/presensi" element={<AbsensiFitur />} />
+                <Route path="/:role/nilai-tugas" element={<NilaiTugasFitur />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>
