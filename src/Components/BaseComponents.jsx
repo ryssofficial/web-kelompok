@@ -5,7 +5,7 @@ export const HappyHuesTheme = {
     background: '#0f0e17',
     headline: '#fffffe',
     paragraph: '#a7a9be',
-    button: '#ff8906',
+    button: '#615d58',
     buttonText: '#fffffe',
     secondary: '#f25f4c',
     tertiary: '#e53170',
