@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from "react";                            
-import { useNavigate, useLocation } from "react-router-dom";             
-import {                            
-    PageContainer,                          
-    StyledCard, 
-    StyledButton,                           
-    HappyHuesTheme                          
-} from "../Components/BaseComponents";                          
-import { NotificationCustom } from "../Components/Notifications/NotificationCustom"                         
-import { LoginLogic } from "../Logic/LoginLogic";                           
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+    PageContainer,
+    StyledCard,
+    StyledButton,
+    HappyHuesTheme
+} from "../Components/BaseComponents";
+import { NotificationCustom } from "../Components/Notifications/NotificationCustom"
+import { LoginLogic } from "../Logic/LoginLogic";
 import { GoogleButton } from "../Components/Button/GoogleButton";
+import { useGoogleLogin } from "@react-oauth/google";
+// Import firebase jika digunakan (Contoh):
+// import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
-//Form Input
+// Form Input
 const FormInputFactory = ({ isSiswa, identifier, setIdentifier, password, setPassword }) => {
     const inputStyle = {
         width: '100%',
@@ -32,8 +35,7 @@ const FormInputFactory = ({ isSiswa, identifier, setIdentifier, password, setPas
 
     const formConfig = isSiswa ? {
         label: "Nomor Induk Siswa (NIS)",
-        type: "number", 
-        MozAppearance: 'textfield',
+        type: "number",
         placeholder: "Masukkan NIS Anda...",
     } : {
         label: "Alamat Email",
@@ -53,7 +55,7 @@ const FormInputFactory = ({ isSiswa, identifier, setIdentifier, password, setPas
                 `}
             </style>
             <label style={labelStyle}>{formConfig.label}</label>
-            <input 
+            <input
                 type={formConfig.type}
                 placeholder={formConfig.placeholder}
                 value={identifier}
@@ -62,7 +64,7 @@ const FormInputFactory = ({ isSiswa, identifier, setIdentifier, password, setPas
             />
 
             <label style={labelStyle}>Password</label>
-            <input 
+            <input
                 type="password"
                 placeholder="********"
                 value={password}
@@ -77,24 +79,26 @@ export default function LoginPage() {
     const location = useLocation();
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
-    const [notification, setNotification] = useState(null); 
+    const [notification, setNotification] = useState(null);
     const navigate = useNavigate();
     const [isSiswa, setIsSiswa] = useState(() => {
         if (location.state?.role === 'guru') return false;
         return true;
     });
+
     const getLogin = (e) => {
         e.preventDefault();
-        const result = isSiswa 
-            ? LoginLogic.Siswa(identifier, password) 
+        const result = isSiswa
+            ? LoginLogic.Siswa(identifier, password)
             : LoginLogic.Guru(identifier, password);
+            
         if (result.success) {
             setNotification({
                 type: 'success',
                 title: 'Login Berhasil',
                 message: `Selamat datang, ${isSiswa ? 'Siswa' : 'Guru'}!`
             });
-            
+
             setTimeout(() => {
                 navigate(isSiswa ? '/siswa/dashboard' : '/guru/dashboard');
             }, 1000);
@@ -107,10 +111,54 @@ export default function LoginPage() {
         }
     };
 
-    const handleGoogleLogin = () => {
-        console.log("Memicu OAuth Google untuk Guru...");
-        // Tambahkan logika integrasi Firebase/Google Auth di sini
-    };
+    // ==========================================
+    // FUNGSI LOGIN WITH GOOGLE KHUSUS GURU
+    // ==========================================
+    const handleGoogleLogin = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            try {
+                const response = await fetch("http://localhost:5000/api/auth/google", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                        token: tokenResponse.access_token,  // ← bukan .credential
+                        role: "guru",
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Simpan JWT internal ke localStorage
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("user", JSON.stringify(data.user));
+
+                    setNotification({
+                        type: "success",
+                        title: "Login Google Berhasil",
+                        message: `Selamat datang, ${data.user.nama}!`,
+                    });
+                    setTimeout(() => navigate("/guru/dashboard"), 1000);
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (err) {
+                setNotification({
+                    type: "error",
+                    title: "Login Gagal",
+                    message: err.message || "Terjadi kesalahan.",
+                });
+            }
+        },
+        onError: () => {
+            setNotification({
+                type: "error",
+                title: "Login Dibatalkan",
+                message: "Proses login Google gagal atau dibatalkan.",
+            });
+        },
+        flow: "implicit", // pakai implicit untuk dapat id_token langsung
+    });
 
     const toggleUserType = () => {
         setIsSiswa(!isSiswa);
@@ -130,7 +178,7 @@ export default function LoginPage() {
     return (
         <PageContainer>
             {notification && (
-                <NotificationCustom 
+                <NotificationCustom
                     type={notification.type}
                     title={notification.title}
                     message={notification.message}
@@ -140,18 +188,18 @@ export default function LoginPage() {
 
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', padding: '20px 0' }}>
                 <div style={{ width: '100%', maxWidth: '400px' }}>
-                    
+
                     <StyledCard title={`Login ${isSiswa ? 'Siswa' : 'Guru'}`}>
                         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                            <StyledButton 
-                                label="Siswa" 
+                            <StyledButton
+                                label="Siswa"
                                 type={isSiswa ? 'primary' : 'secondary'}
                                 onClick={() => !isSiswa && toggleUserType()}
                                 fullWidth={true}
                                 style={{ opacity: isSiswa ? 1 : 0.6 }}
                             />
-                            <StyledButton 
-                                label="Guru" 
+                            <StyledButton
+                                label="Guru"
                                 type={!isSiswa ? 'primary' : 'secondary'}
                                 onClick={() => isSiswa && toggleUserType()}
                                 fullWidth={true}
@@ -160,7 +208,7 @@ export default function LoginPage() {
                         </div>
 
                         <form onSubmit={getLogin}>
-                            <FormInputFactory 
+                            <FormInputFactory
                                 isSiswa={isSiswa}
                                 identifier={identifier}
                                 setIdentifier={setIdentifier}
@@ -168,20 +216,20 @@ export default function LoginPage() {
                                 setPassword={setPassword}
                             />
 
-                            <StyledButton 
-                                label="Masuk Sekarang" 
-                                type="primary" 
-                                fullWidth={true} 
+                            <StyledButton
+                                label="Masuk Sekarang"
+                                type="primary"
+                                fullWidth={true}
                                 onClick={getLogin}
-                                style={{ marginTop: '20px' }}  
+                                style={{ marginTop: '20px' }}
                             />
                         </form>
 
                         {!isSiswa && (
                             <>
-                                <div style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
                                     margin: '25px 0 15px 0',
                                     color: HappyHuesTheme.paragraph
                                 }}>
@@ -189,8 +237,8 @@ export default function LoginPage() {
                                     <span style={{ padding: '0 10px', fontSize: '12px', fontWeight: 'bold' }}>ATAU</span>
                                     <div style={{ flex: 1, height: '2px', backgroundColor: HappyHuesTheme.stroke }}></div>
                                 </div>
-                                
-                                <GoogleButton onClick={handleGoogleLogin} />
+
+                                <GoogleButton onClick={() => handleGoogleLogin()} />
                             </>
                         )}
                     </StyledCard>

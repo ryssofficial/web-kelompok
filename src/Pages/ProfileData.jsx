@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { DashboardLayout } from "../Components/DashboardLayout";
+import { ProfileDataResponse } from "../API/HakimResponse/ProfileDataResponse";
 
 const HappyHuesTheme = {
   stroke: "#000000",
   paragraph: "#1a202c",
   background: "#f7fafc",
-  highlight: "#ffea79", // Kuning Neo-Brutalism
+  highlight: "#ffea79",
 };
 
 const LocalStyledCard = ({ children, style }) => (
@@ -30,14 +31,14 @@ const LocalStyledButton = ({ children, type, style, onClick, disabled }) => (
     onClick={onClick}
     disabled={disabled}
     style={{
-      backgroundColor: "#e2e8f0", 
-      color: HappyHuesTheme.paragraph,
+      backgroundColor: disabled ? "#cbd5e1" : "#e2e8f0", 
+      color: disabled ? "#94a3b8" : HappyHuesTheme.paragraph,
       border: `3px solid ${HappyHuesTheme.stroke}`,
-      boxShadow: `3px 3px 0px ${HappyHuesTheme.stroke}`,
+      boxShadow: disabled ? "none" : `3px 3px 0px ${HappyHuesTheme.stroke}`,
       borderRadius: "8px",
       padding: "10px 20px",
       fontWeight: "700",
-      cursor: "pointer",
+      cursor: disabled ? "not-allowed" : "pointer",
       display: "inline-flex",
       alignItems: "center",
       gap: "8px",
@@ -50,28 +51,75 @@ const LocalStyledButton = ({ children, type, style, onClick, disabled }) => (
 
 export default function ProfileData() {
   const { role } = useParams();
+  const currentRole = role || "guru"; 
 
-  // State navigasi internal/mode visual form
-  const [currentView, setCurrentView] = useState("display"); // Pilihan: "display" | "edit-profile" | "change-password"
+  // Reset view kembali ke 'display' setiap kali user pindah role (dari guru ke siswa / sebaliknya)
+  const [currentView, setCurrentView] = useState("display"); 
+  const [loading, setLoading] = useState(true);
 
-  // Master State Data Profil (Diinisialisasi dengan data default dari screenshot kamu)
+  // Master State Data Profil Utama
   const [profile, setProfile] = useState({
-    fullName: "hakim nizam",
-    alamat: "jl. kaps baru X/15",
-    ttl: "surabaya, 12 agustus 2003",
-    email: "hakim@school.com",
-    password: "password123", // Password bawaan awal untuk validasi
+    fullName: "",
+    alamat: "",
+    ttl: "",
+    email: "",
   });
 
-  // State temporary khusus form input
-  const [tempProfile, setTempProfile] = useState({ ...profile });
+  // State temporary khusus form input agar tidak mengacaukan master state sebelum disave
+  const [tempProfile, setTempProfile] = useState({
+    fullName: "",
+    alamat: "",
+    ttl: "",
+    email: "",
+  });
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  // Handler Perubahan Form
+  // ==================== GET DATA PROFILE ====================
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        setLoading(true);
+        // Pastikan view balik ke display ringkasan data saat ganti halaman role
+        setCurrentView("display"); 
+        
+        const response = await ProfileDataResponse.getProfile(currentRole);
+        
+        if (response && response.data) {
+          const fetchedData = {
+            fullName: response.data.fullName || "",
+            alamat: response.data.alamat || "",
+            ttl: response.data.ttl || "",
+            email: response.data.email || "",
+          };
+          setProfile(fetchedData);
+          setTempProfile(fetchedData); // Isi data temp dengan data role yang baru di-load
+        } else {
+          // Jika data kosong/belum diisi di backend, reset ke string kosong khusus role ini
+          const emptyData = { fullName: "", alamat: "", ttl: "", email: "" };
+          setProfile(emptyData);
+          setTempProfile(emptyData);
+        }
+      } catch (error) {
+        console.error(`Gagal memuat data profil ${currentRole}:`, error);
+        // Fallback jika error/belum ada database agar tetap bisa dicoba tampilannya
+        const fallbackData = { fullName: "", alamat: "", ttl: "", email: "" };
+        setProfile(fallbackData);
+        setTempProfile(fallbackData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+    // Bersihkan form ganti password setiap kali pindah role halaman
+    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  }, [currentRole]); // Menggunakan [currentRole] sebagai dependency wajib!
+
   const handleProfileChange = (e) => {
     setTempProfile({ ...tempProfile, [e.target.name]: e.target.value });
   };
@@ -80,30 +128,34 @@ export default function ProfileData() {
     setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
   };
 
-  // Submit Perubahan Profil
-  const handleProfileSubmit = (e) => {
+  // ==================== UPDATE PROFILE ====================
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setProfile({ ...tempProfile });
-    alert("Data profil guru berhasil diperbarui!");
-    setCurrentView("display");
+    try {
+      await ProfileDataResponse.updateProfile(currentRole, tempProfile);
+      setProfile({ ...tempProfile });
+      alert(`Data profil ${currentRole.toUpperCase()} berhasil diperbarui!`);
+      setCurrentView("display");
+    } catch (error) {
+      alert("Gagal memperbarui profil: " + (error.response?.data?.message || error.message));
+    }
   };
 
-  // Submit Perubahan Password
-  const handlePasswordSubmit = (e) => {
+  // ==================== UPDATE PASSWORD ====================
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    if (passwordData.currentPassword !== profile.password) {
-      alert("Password saat ini tidak cocok!");
-      return;
-    }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       alert("Konfirmasi password baru tidak cocok!");
       return;
     }
-    
-    setProfile({ ...profile, password: passwordData.newPassword });
-    alert("Password berhasil diubah!");
-    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    setCurrentView("display");
+    try {
+      await ProfileDataResponse.updatePassword(passwordData);
+      alert("Password berhasil diubah!");
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setCurrentView("display");
+    } catch (error) {
+      alert("Gagal mengubah password: " + (error.response?.data?.message || error.message));
+    }
   };
 
   const inputStyle = {
@@ -131,175 +183,200 @@ export default function ProfileData() {
     borderBottom: `2px dashed ${HappyHuesTheme.stroke}`
   };
 
+  const BackButton = () => (
+    <button
+      type="button"
+      onClick={() => setCurrentView("display")}
+      style={{
+        backgroundColor: "#ffffff",
+        color: HappyHuesTheme.paragraph,
+        border: `2px solid ${HappyHuesTheme.stroke}`,
+        boxShadow: `2px 2px 0px ${HappyHuesTheme.stroke}`,
+        borderRadius: "6px",
+        padding: "6px 12px",
+        fontWeight: "bold",
+        cursor: "pointer",
+        fontSize: "13px",
+        marginBottom: "20px",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px"
+      }}
+    >
+      ⬅️ Kembali
+    </button>
+  );
+
   return (
-    <DashboardLayout role={role || "guru"} activeMenu="Profil Saya">
+    <DashboardLayout role={currentRole} activeMenu="Profil Saya">
       <div style={{ padding: "8px", maxWidth: "600px", margin: "0 auto" }}>
         
-        {/* ==================== 1. MODE TAMPIL DATA UTAMA ==================== */}
-        {currentView === "display" && (
-          <LocalStyledCard>
-            <div style={{ backgroundColor: HappyHuesTheme.highlight, padding: "12px", border: `3px solid ${HappyHuesTheme.stroke}`, boxShadow: `3px 3px 0px ${HappyHuesTheme.stroke}`, fontWeight: "900", marginBottom: "24px", borderRadius: "6px", textAlign: "center" }}>
-              ✅ Data Berhasil Terdaftar
-            </div>
+        {loading ? (
+          <div style={{ textAlign: "center", fontWeight: "bold", padding: "40px", color: HappyHuesTheme.paragraph }}>
+            ⏳ Memuat Data Profil {currentRole === "guru" ? "Guru" : "Siswa"}...
+          </div>
+        ) : (
+          <>
+            {/* ==================== 1. MODE TAMPIL DATA UTAMA ==================== */}
+            {currentView === "display" && (
+              <LocalStyledCard>
+                <div style={{ backgroundColor: HappyHuesTheme.highlight, padding: "12px", border: `3px solid ${HappyHuesTheme.stroke}`, boxShadow: `3px 3px 0px ${HappyHuesTheme.stroke}`, fontWeight: "900", marginBottom: "24px", borderRadius: "6px", textAlign: "center", textTransform: "uppercase" }}>
+                  ✅ Profil {currentRole} Terdaftar
+                </div>
 
-            <div style={resultItemStyle}>
-              <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "800", letterSpacing: "1px" }}>NAMA LENGKAP</span>
-              <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "4px" }}>{profile.fullName}</div>
-            </div>
+                <div style={resultItemStyle}>
+                  <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "800", letterSpacing: "1px" }}>NAMA LENGKAP</span>
+                  <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "4px" }}>{profile.fullName || "-"}</div>
+                </div>
 
-            <div style={resultItemStyle}>
-              <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "800", letterSpacing: "1px" }}>ALAMAT</span>
-              <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "4px" }}>{profile.alamat}</div>
-            </div>
+                <div style={resultItemStyle}>
+                  <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "800", letterSpacing: "1px" }}>ALAMAT TEMPAT TINGGAL</span>
+                  <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "4px" }}>{profile.alamat || "-"}</div>
+                </div>
 
-            <div style={resultItemStyle}>
-              <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "800", letterSpacing: "1px" }}>TEMPAT, TANGGAL LAHIR</span>
-              <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "4px" }}>{profile.ttl}</div>
-            </div>
+                <div style={resultItemStyle}>
+                  <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "800", letterSpacing: "1px" }}>TEMPAT, TANGGAL LAHIR</span>
+                  <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "4px" }}>{profile.ttl || "-"}</div>
+                </div>
 
-            <div style={resultItemStyle}>
-              <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "800", letterSpacing: "1px" }}>EMAIL AKTIF</span>
-              <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "4px" }}>{profile.email}</div>
-            </div>
+                <div style={{ ...resultItemStyle, borderBottom: "none", marginBottom: "24px" }}>
+                  <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "800", letterSpacing: "1px" }}>EMAIL AKTIF</span>
+                  <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "4px" }}>{profile.email || "-"}</div>
+                </div>
 
-            <div style={{ ...resultItemStyle, borderBottom: "none", marginBottom: "24px" }}>
-              <span style={{ fontSize: "11px", color: "#64748b", fontWeight: "800", letterSpacing: "1px" }}>STATUS PASSWORD</span>
-              <div style={{ fontSize: "16px", fontWeight: "bold", marginTop: "4px" }}>•••••••• (Sesuai Prosedur Aman)</div>
-            </div>
+                <div style={{ display: "flex", gap: "12px" }}>
+                  <LocalStyledButton 
+                    onClick={() => {
+                      setTempProfile({ ...profile });
+                      setCurrentView("edit-profile");
+                    }}
+                    style={{ backgroundColor: "#38bdf8", flex: 1 }}
+                  >
+                    ✏️ Edit Profil
+                  </LocalStyledButton>
+                  
+                  <LocalStyledButton 
+                    onClick={() => setCurrentView("change-password")}
+                    style={{ backgroundColor: "#ec4899", color: "#fff", flex: 1 }}
+                  >
+                    🔑 Ubah Password
+                  </LocalStyledButton>
+                </div>
+              </LocalStyledCard>
+            )}
 
-            {/* Panel Tombol Aksi */}
-            <div style={{ display: "flex", gap: "12px" }}>
-              <LocalStyledButton 
-                onClick={() => {
-                  setTempProfile({ ...profile });
-                  setCurrentView("edit-profile");
-                }}
-                style={{ backgroundColor: "#38bdf8", flex: 1 }}
-              >
-                ✏️ Edit Profil
-              </LocalStyledButton>
-              
-              <LocalStyledButton 
-                onClick={() => setCurrentView("change-password")}
-                style={{ backgroundColor: "#ec4899", color: "#fff", flex: 1 }}
-              >
-                🔑 Ubah Password
-              </LocalStyledButton>
-            </div>
-          </LocalStyledCard>
-        )}
+            {/* ==================== 2. MODE FORM EDIT DATA PROFIL ==================== */}
+            {currentView === "edit-profile" && (
+              <div>
+                <BackButton />
+                <LocalStyledCard>
+                  <h3 style={{ color: HappyHuesTheme.paragraph, marginBottom: "20px", fontWeight: "900", fontSize: "20px" }}>
+                    Form Edit Profil {currentRole === "guru" ? "Guru" : "Siswa"}
+                  </h3>
+                  <form onSubmit={handleProfileSubmit}>
+                    <label style={labelStyle}>Nama Lengkap</label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={tempProfile.fullName}
+                      onChange={handleProfileChange}
+                      style={inputStyle}
+                      required
+                    />
 
-        {/* ==================== 2. MODE FORM EDIT DATA PROFIL ==================== */}
-        {currentView === "edit-profile" && (
-          <LocalStyledCard>
-            <h3 style={{ color: HappyHuesTheme.paragraph, marginBottom: "20px", fontWeight: "900", fontSize: "20px" }}>
-              Form Edit Profil Guru
-            </h3>
-            <form onSubmit={handleProfileSubmit}>
-              <label style={labelStyle}>Nama Lengkap</label>
-              <input
-                type="text"
-                name="fullName"
-                value={tempProfile.fullName}
-                onChange={handleProfileChange}
-                style={inputStyle}
-                required
-              />
+                    <label style={labelStyle}>Alamat Tempat Tinggal</label>
+                    <input
+                      type="text"
+                      name="alamat"
+                      value={tempProfile.alamat}
+                      onChange={handleProfileChange}
+                      style={inputStyle}
+                      required
+                    />
 
-              <label style={labelStyle}>Alamat Tempat Tinggal</label>
-              <input
-                type="text"
-                name="alamat"
-                value={tempProfile.alamat}
-                onChange={handleProfileChange}
-                style={inputStyle}
-                required
-              />
+                    <label style={labelStyle}>Tempat, Tanggal Lahir</label>
+                    <input
+                      type="text"
+                      name="ttl"
+                      value={tempProfile.ttl}
+                      onChange={handleProfileChange}
+                      style={inputStyle}
+                      required
+                    />
 
-              <label style={labelStyle}>Tempat, Tanggal Lahir</label>
-              <input
-                type="text"
-                name="ttl"
-                value={tempProfile.ttl}
-                onChange={handleProfileChange}
-                style={inputStyle}
-                required
-              />
+                    <label style={labelStyle}>Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={tempProfile.email}
+                      onChange={handleProfileChange}
+                      style={inputStyle}
+                      required
+                    />
 
-              <label style={labelStyle}>Email</label>
-              <input
-                type="email"
-                name="email"
-                value={tempProfile.email}
-                onChange={handleProfileChange}
-                style={inputStyle}
-                required
-              />
-
-              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
-                <LocalStyledButton type="submit" style={{ backgroundColor: "#4ade80", flex: 1 }}>
-                  Simpan Perubahan
-                </LocalStyledButton>
-                <LocalStyledButton type="button" onClick={() => setCurrentView("display")} style={{ flex: 1 }}>
-                  Batal
-                </LocalStyledButton>
+                    <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                      <LocalStyledButton type="submit" style={{ backgroundColor: "#4ade80", flex: 1 }}>
+                        Simpan Perubahan
+                      </LocalStyledButton>
+                    </div>
+                  </form>
+                </LocalStyledCard>
               </div>
-            </form>
-          </LocalStyledCard>
-        )}
+            )}
 
-        {/* ==================== 3. MODE FORM UBAH PASSWORD ==================== */}
-        {currentView === "change-password" && (
-          <LocalStyledCard>
-            <h3 style={{ color: HappyHuesTheme.paragraph, marginBottom: "20px", fontWeight: "900", fontSize: "20px" }}>
-              🔑 Form Perbarui Password
-            </h3>
-            <form onSubmit={handlePasswordSubmit}>
-              <label style={labelStyle}>Password Saat Ini</label>
-              <input
-                type="password"
-                name="currentPassword"
-                value={passwordData.currentPassword}
-                onChange={handlePasswordChange}
-                style={inputStyle}
-                placeholder="Masukkan password lama"
-                required
-              />
+            {/* ==================== 3. MODE FORM UBAH PASSWORD ==================== */}
+            {currentView === "change-password" && (
+              <div>
+                <BackButton />
+                <LocalStyledCard>
+                  <h3 style={{ color: HappyHuesTheme.paragraph, marginBottom: "20px", fontWeight: "900", fontSize: "20px" }}>
+                    🔑 Form Perbarui Password
+                  </h3>
+                  <form onSubmit={handlePasswordSubmit}>
+                    <label style={labelStyle}>Password Saat Ini</label>
+                    <input
+                      type="password"
+                      name="currentPassword"
+                      value={passwordData.currentPassword}
+                      onChange={handlePasswordChange}
+                      style={inputStyle}
+                      placeholder="Masukkan password lama"
+                      required
+                    />
 
-              <label style={labelStyle}>Password Baru</label>
-              <input
-                type="password"
-                name="newPassword"
-                value={passwordData.newPassword}
-                onChange={handlePasswordChange}
-                style={inputStyle}
-                placeholder="Buat password baru"
-                required
-              />
+                    <label style={labelStyle}>Password Baru</label>
+                    <input
+                      type="password"
+                      name="newPassword"
+                      value={passwordData.newPassword}
+                      onChange={handlePasswordChange}
+                      style={inputStyle}
+                      placeholder="Buat password baru"
+                      required
+                    />
 
-              <label style={labelStyle}>Konfirmasi Password Baru</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={passwordData.confirmPassword}
-                onChange={handlePasswordChange}
-                style={inputStyle}
-                placeholder="Ulangi password baru"
-                required
-              />
+                    <label style={labelStyle}>Konfirmasi Password Baru</label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      value={passwordData.confirmPassword}
+                      onChange={handlePasswordChange}
+                      style={inputStyle}
+                      placeholder="Ulangi password baru"
+                      required
+                    />
 
-              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
-                <LocalStyledButton type="submit" style={{ backgroundColor: "#ec4899", color: "#fff", flex: 1 }}>
-                  Update Password
-                </LocalStyledButton>
-                <LocalStyledButton type="button" onClick={() => setCurrentView("display")} style={{ flex: 1 }}>
-                  Kembali
-                </LocalStyledButton>
+                    <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+                      <LocalStyledButton type="submit" style={{ backgroundColor: "#ec4899", color: "#fff", flex: 1 }}>
+                        Update Password
+                      </LocalStyledButton>
+                    </div>
+                  </form>
+                </LocalStyledCard>
               </div>
-            </form>
-          </LocalStyledCard>
+            )}
+          </>
         )}
-
       </div>
     </DashboardLayout>
   );
