@@ -1,3 +1,7 @@
+// =========================================================
+// FITUR INI DIKERJAKAN SECARA MANDIRI OLEH (ARISULA)
+// =========================================================
+
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import LandingPage from './Pages/LandingPages';
 import LoginPage from './Pages/LoginPage';
