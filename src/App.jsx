@@ -20,6 +20,13 @@ const KeuanganPageWrapper = () => {
     const roleProp = role.charAt(0).toUpperCase() + role.slice(1);        // → 'Guru' atau 'Siswa'
     return <KeuanganPage role={roleProp} />;
 };
+
+const AbsensiFiturWrapper = () => {
+    const { role } = useParams();
+    const roleProp = role.charAt(0).toUpperCase() + role.slice(1); // → 'Guru' atau 'Siswa'
+    return <AbsensiFitur role={roleProp} />;
+};
+
 export default function App() {
     return (
         <Router>
@@ -40,11 +47,13 @@ export default function App() {
                 <Route path="/jadwal" element={<JadwalPage role="Guru" />} />
 
                 {/* Redirect jika path tidak ditemukan */}
-                <Route path="/:role/kas-kelas"  element={<KeuanganPageWrapper />} />
+                <Route path="/:role/kas-kelas" element={<KeuanganPageWrapper />} />
                 <Route path="/:role/validasi-tabungan" element={<KeuanganPageWrapper />} />
+                <Route path="/:role/data-kas" element={<KeuanganPageWrapper />} />
 
-                <Route path="/:role/presensi" element={<AbsensiFitur />} />
-                <Route path="/:role/nilai-tugas" element={<NilaiTugasFitur />} />
+                <Route path="/:role/presensi" element={<AbsensiFiturWrapper />} />
+                <Route path="/:role/data-presensi" element={<AbsensiFiturWrapper />} />
+                <Route path="/:role/tugas-saya" element={<NilaiTugasFitur />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>

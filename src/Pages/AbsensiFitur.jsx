@@ -170,7 +170,7 @@ const LoadingSkeleton = () => (
 // ─────────────────────────────────────────────
 // Halaman Utama: AbsensiFitur
 // ─────────────────────────────────────────────
-const AbsensiFitur = ({ role = "Guru" }) => {
+const AbsensiFitur = ({ role = "guru" }) => {
     const [absensi, setAbsensi] = useState([]);
     const [filter, setFilter] = useState("semua"); // "semua" | "hadir" | "izin" | "sakit" | "alpha"
     const [searchQuery, setSearchQuery] = useState("");

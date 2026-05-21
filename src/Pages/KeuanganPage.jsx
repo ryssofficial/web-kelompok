@@ -286,7 +286,7 @@ const SectionKas = ({ idKas, idGuru, isGuru }) => {
 
 const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
     const [listTabungan, setListTabungan] = useState([]);
-    const [selected, setSelected] = useState(null); // {id_tabungan, nama_siswa, saldo_total}
+    const [selected, setSelected] = useState(null);
     const [riwayatSetor, setRiwayatSetor] = useState([]);
     const [riwayatTarik, setRiwayatTarik] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -340,7 +340,6 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
             });
             await fetchList();
             await fetchRiwayat(selected.id_tabungan);
-            // Update saldo selected
             setSelected((prev) => ({ ...prev, saldo_total: Number(prev.saldo_total) + jumlah }));
         } catch (err) {
             alert("Gagal setor: " + (err?.message || JSON.stringify(err)));
@@ -362,7 +361,6 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
             await fetchRiwayat(selected.id_tabungan);
             setSelected((prev) => ({ ...prev, saldo_total: Number(prev.saldo_total) - jumlah }));
         } catch (err) {
-            // Tangkap pesan dari trigger DB: fn_cek_saldo_tabungan_cukup
             alert("Gagal tarik: " + (err?.message || JSON.stringify(err)));
         } finally {
             setLoading(false);
@@ -454,16 +452,11 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
                     </div>
                 ) : (
                     <>
-                        {/* Header Detail */}
-                        <div style={{
-                            display: "flex", gap: 16, flexWrap: "wrap",
-                            marginBottom: 20
-                        }}>
+                        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
                             <SaldoCard label={`Saldo — ${selected.nama_siswa || "Siswa"}`}
                                 nominal={selected.saldo_total} warna="#eff6ff" />
                         </div>
 
-                        {/* Form Setor & Tarik - hanya guru */}
                         {isGuru && (
                             <div style={{ marginBottom: 20 }}>
                                 <FormTransaksi onSubmit={handleSetor} loading={loading} tipe="masuk" />
@@ -508,12 +501,10 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
-const KeuanganPage = () => {
-    const { role } = useParams();
+const KeuanganPage = ({ role }) => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("kas");
 
-    // Data guru & rombel di-fetch dari API
     const [idGuru, setIdGuru] = useState(null);
     const [idRombel, setIdRombel] = useState(null);
     const [idKas, setIdKas] = useState(null);
@@ -522,8 +513,7 @@ const KeuanganPage = () => {
     const [errorInit, setErrorInit] = useState(null);
 
     useEffect(() => {
-        // Redirect jika role tidak valid
-        if (role !== "guru" && role !== "siswa") {
+        if (role !== "Guru" && role !== "Siswa") {
             navigate("/", { replace: true });
             return;
         }
@@ -531,18 +521,16 @@ const KeuanganPage = () => {
         const init = async () => {
             setLoadInit(true);
             try {
-                // Endpoint GET /api/auth/profile → { id_guru, role, id_rombel }
                 const profile = await AxiosConfig.get("/auth/profile");
 
                 const guru = profile?.id_guru ?? null;
                 const rombel = profile?.id_rombel ?? null;
-                const profileRole = profile?.role ?? "siswa";
+                const profileRole = profile?.role ?? "Siswa";
 
                 setIdGuru(guru);
                 setIdRombel(rombel);
-                setIsGuru(profileRole === "guru");
+                setIsGuru(profileRole === "Guru");
 
-                // Ambil id_kas berdasarkan id_rombel
                 if (rombel) {
                     try {
                         const kasData = await KasFitur.getKasByRombel(rombel);
@@ -552,8 +540,13 @@ const KeuanganPage = () => {
                     }
                 }
             } catch (err) {
-                setErrorInit("Gagal memuat data pengguna. Silakan coba lagi.");
-                console.error("Init error:", err);
+                // ── DUMMY fallback — hapus setelah backend siap ──────────
+                console.warn("API /auth/profile gagal, menggunakan data dummy.", err);
+                setIdGuru(1);
+                setIdRombel(1);
+                setIdKas(1);
+                setIsGuru(role === "Guru");
+                // ── akhir dummy ──────────────────────────────────────────
             } finally {
                 setLoadInit(false);
             }
@@ -561,7 +554,6 @@ const KeuanganPage = () => {
         init();
     }, [role, navigate]);
 
-    // ── Styles Tab ──
     const tabStyle = (tab) => ({
         padding: "10px 24px",
         border: "none",
@@ -575,7 +567,7 @@ const KeuanganPage = () => {
     });
 
     if (loadInit) return (
-        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
+        <DashboardLayout role={role || "Siswa"} activeMenu="Keuangan">
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
                 <p style={{ color: "#94a3b8", fontSize: 14 }}>⏳ Memuat halaman keuangan...</p>
             </div>
@@ -583,7 +575,7 @@ const KeuanganPage = () => {
     );
 
     if (errorInit) return (
-        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
+        <DashboardLayout role={role || "Siswa"} activeMenu="Keuangan">
             <div style={{ padding: 24, color: "#dc2626", background: "#fef2f2", borderRadius: 12 }}>
                 ⚠️ {errorInit}
             </div>
@@ -591,7 +583,7 @@ const KeuanganPage = () => {
     );
 
     return (
-        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
+        <DashboardLayout role={role || "Siswa"} activeMenu="Keuangan">
 
             {/* Tab Navigation */}
             <div style={{
