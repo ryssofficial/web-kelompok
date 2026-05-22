@@ -7,6 +7,7 @@ import LandingPage from './Pages/LandingPages';
 import LoginPage from './Pages/LoginPage';
 import DashboardPage from './Pages/DashboardPage';
 import NotifikasiPage from './Pages/NotifikasiPage';
+import ProfileData from './Pages/ProfileData';
 import JadwalPage from './Pages/JadwalPage';
 
 // ✅ Wrapper kecil — ambil :role dari URL, kapitalisasi, kirim ke JadwalPage
@@ -31,6 +32,7 @@ const AbsensiFiturWrapper = () => {
     return <AbsensiFitur role={roleProp} />;
 };
 
+
 export default function App() {
     return (
         <Router>
@@ -42,6 +44,9 @@ export default function App() {
                 {/* Core Dashboard */}
                 <Route path="/:role/dashboard" element={<DashboardPage />} />
                 <Route path="/:role/notifikasi" element={<NotifikasiPage />} />
+
+                <Route path="/:role/profil" element={<ProfileData />} />
+=======
 
                 {/* Fitur Jadwal Dinamis Berdasarkan Role Sidebar */}
                 <Route path="/:role/jadwal-mengajar" element={<JadwalPageWrapper />} />
@@ -58,6 +63,7 @@ export default function App() {
                 <Route path="/:role/presensi" element={<AbsensiFiturWrapper />} />
                 <Route path="/:role/data-presensi" element={<AbsensiFiturWrapper />} />
                 <Route path="/:role/tugas-saya" element={<NilaiTugasFitur />} />
+
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>
