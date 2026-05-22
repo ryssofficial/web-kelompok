@@ -36,7 +36,7 @@ export class JadwalBuilder {
 
     setId(id) {
         this._jadwal.id = id;
-        return this; // fluent chaining
+        return this;
     }
 
     setHari(hari) {
@@ -85,27 +85,15 @@ export class JadwalBuilder {
         return this;
     }
 
-    /** Validasi semua field wajib, lalu kembalikan plain object jadwal */
     build() {
         const required = ['hari', 'mapel', 'guru', 'jamMulai', 'jamSelesai', 'ruangan', 'kelas'];
-        for (const field of required) {
-            if (!this._jadwal[field]) throw new Error(`Field '${field}' belum diisi`);
-        }
-        // Auto-generate ID jika belum di-set
-        if (!this._jadwal.id) {
-            this._jadwal.id = `jadwal_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-        }
+        for (const field of required) { if (!this._jadwal[field]) throw new Error(`Field '${field}' belum diisi`); }
+        if (!this._jadwal.id) { this._jadwal.id = `jadwal_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`; }
         return { ...this._jadwal }; // kembalikan salinan bersih
     }
 }
 
-// ──────────────────────────────────────────────
-// 2. SINGLETON PATTERN – JadwalManager
-// ──────────────────────────────────────────────
 /**
- * JadwalManager adalah satu-satunya sumber kebenaran (single source of truth)
- * untuk seluruh data jadwal di aplikasi.
- *
  * Contoh pemakaian:
  *   const mgr = JadwalManager.getInstance();
  *   mgr.tambah(jadwalObj);
@@ -116,14 +104,12 @@ export class JadwalBuilder {
 class JadwalManager {
     constructor() {
         if (JadwalManager._instance) {
-            // Cegah pembuatan instance kedua
             return JadwalManager._instance;
         }
-        this._data = this._seedData(); // pre-populated demo data
+        this._data = this._seedData();
         JadwalManager._instance = this;
     }
 
-    /** Ambil atau buat satu-satunya instance */
     static getInstance() {
         if (!JadwalManager._instance) {
             new JadwalManager();
@@ -131,41 +117,32 @@ class JadwalManager {
         return JadwalManager._instance;
     }
 
-    /** Reset instance (berguna untuk testing) */
     static resetInstance() {
         JadwalManager._instance = null;
     }
 
-    // ── CRUD ──────────────────────────────────
-
-    /** Tambah satu jadwal (objek hasil JadwalBuilder.build()) */
     tambah(jadwal) {
         this._cekBentrok(jadwal);
         this._data.push({ ...jadwal });
         return this;
     }
 
-    /** Ambil semua jadwal */
     getAll() {
         return [...this._data];
     }
 
-    /** Ambil jadwal berdasarkan hari */
     getByHari(hari) {
         return this._data.filter(j => j.hari === hari);
     }
 
-    /** Ambil jadwal berdasarkan kelas */
     getByKelas(kelas) {
         return this._data.filter(j => j.kelas === kelas);
     }
 
-    /** Ambil jadwal berdasarkan guru */
     getByGuru(guru) {
         return this._data.filter(j => j.guru === guru);
     }
 
-    /** Hapus jadwal berdasarkan id */
     hapus(id) {
         const idx = this._data.findIndex(j => j.id === id);
         if (idx === -1) throw new Error(`Jadwal dengan id '${id}' tidak ditemukan`);
@@ -173,7 +150,6 @@ class JadwalManager {
         return this;
     }
 
-    /** Update jadwal (objek baru harus punya id yang sama) */
     update(jadwalBaru) {
         const idx = this._data.findIndex(j => j.id === jadwalBaru.id);
         if (idx === -1) throw new Error(`Jadwal dengan id '${jadwalBaru.id}' tidak ditemukan`);
@@ -181,9 +157,6 @@ class JadwalManager {
         return this;
     }
 
-    // ── HELPER PRIVATE ────────────────────────
-
-    /** Cek apakah ada bentrok ruangan pada hari & jam yang sama */
     _cekBentrok(jadwalBaru) {
         const bentrok = this._data.find(j =>
             j.hari     === jadwalBaru.hari     &&
@@ -200,7 +173,6 @@ class JadwalManager {
         }
     }
 
-    /** Data awal / demo */
     _seedData() {
         const build = (hari, mapel, guru, mulai, selesai, ruangan, kelas) =>
             new JadwalBuilder()
@@ -224,6 +196,5 @@ class JadwalManager {
     }
 }
 
-// Ekspor instance tunggal langsung (bisa dipakai di mana saja)
 export const jadwalManager = JadwalManager.getInstance();
 export default JadwalManager;
