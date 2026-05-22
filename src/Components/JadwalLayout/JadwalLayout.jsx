@@ -2,14 +2,9 @@ import React, { useState, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { HappyHuesTheme, NAV_CONFIG } from "../BaseComponents";
 
-// ── Context ──────────────────────────────────
 export const JadwalContext = createContext(null);
 export const useJadwal = () => useContext(JadwalContext);
-
-// ── Konstanta hari ───────────────────────────
 export const HARI_LIST = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-
-// ── Sub-komponen : SidebarItem ────────────────
 const SidebarItem = ({ icon, label, isActive, onClick, isDanger }) => {
     const [isHovered, setIsHovered] = useState(false);
 
@@ -50,7 +45,6 @@ const SidebarItem = ({ icon, label, isActive, onClick, isDanger }) => {
     );
 };
 
-// ── Sub-komponen : HariTab ────────────────────
 const HariTab = ({ hari, isActive, jumlah, onClick }) => {
     const [isHovered, setIsHovered] = useState(false);
     const active = isActive || isHovered;
@@ -107,7 +101,6 @@ const HariTab = ({ hari, isActive, jumlah, onClick }) => {
     );
 };
 
-// ── MAIN EXPORT : JadwalLayout ────────────────
 /**
  * Props:
  *  @param {string}   role       - 'Guru' | 'Siswa'
@@ -127,8 +120,6 @@ export const JadwalLayout = ({
 }) => {
     const navigate = useNavigate();
     const menus    = NAV_CONFIG[role] || [];
-
-    // Hitung jumlah jadwal per hari untuk badge tab
     const jumlahPerHari = HARI_LIST.reduce((acc, hari) => {
         acc[hari] = jadwalData.filter(j => j.hari === hari).length;
         return acc;
@@ -142,8 +133,6 @@ export const JadwalLayout = ({
                 backgroundColor: HappyHuesTheme.background,
                 color          : HappyHuesTheme.stroke,
             }}>
-
-                {/* ── SIDEBAR ─────────────────────────────── */}
                 <aside style={{
                     width          : '300px',
                     backgroundColor: HappyHuesTheme.main,
@@ -156,7 +145,6 @@ export const JadwalLayout = ({
                     zIndex         : 100,
                     boxSizing      : 'border-box',
                 }}>
-                    {/* Logo */}
                     <div style={{
                         marginBottom   : '40px',
                         padding        : '20px 15px',
@@ -174,7 +162,6 @@ export const JadwalLayout = ({
                         </p>
                     </div>
 
-                    {/* Nav items */}
                     <nav style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '5px' }}>
                         {menus.map((item, index) => (
                             <SidebarItem
@@ -190,7 +177,6 @@ export const JadwalLayout = ({
                         ))}
                     </nav>
 
-                    {/* Bottom actions */}
                     <div style={{ borderTop: `4px dashed ${HappyHuesTheme.stroke}`, paddingTop: '20px', marginTop: '20px' }}>
                         <SidebarItem
                             icon="👤"
@@ -207,14 +193,12 @@ export const JadwalLayout = ({
                     </div>
                 </aside>
 
-                {/* ── MAIN CONTENT ─────────────────────────── */}
                 <main style={{
                     marginLeft : '300px',
                     width      : '100%',
                     padding    : '50px',
                     boxSizing  : 'border-box',
                 }}>
-                    {/* Header */}
                     <header style={{
                         display        : 'flex',
                         justifyContent : 'space-between',
@@ -260,7 +244,6 @@ export const JadwalLayout = ({
                         </div>
                     </header>
 
-                    {/* ── TAB BAR HARI ─────────────────────── */}
                     <div style={{
                         display        : 'flex',
                         gap            : '10px',
@@ -288,7 +271,6 @@ export const JadwalLayout = ({
                         ))}
                     </div>
 
-                    {/* ── SLOT KONTEN ──────────────────────── */}
                     {children}
                 </main>
             </div>

@@ -14,18 +14,14 @@ const NOTIF_URL = API_URL;
  */
 
 export const NotifikasiResponse = {
-
     /**
-     * Ambil semua notifikasi milik user yang sedang login.
-     * Backend membaca id dari JWT token.
-     * @returns {Promise<Array>} list notifikasi
+     * @returns {Promise<Array>}
      */
     getAll: async () => {
         return await AxiosConfig.get(NOTIF_URL);
     },
 
     /**
-     * Tandai satu notifikasi sebagai sudah dibaca (is_read = true).
      * @param {number} id - id_notif
      * @returns {Promise<Object>}
      */
@@ -34,7 +30,6 @@ export const NotifikasiResponse = {
     },
 
     /**
-     * Tandai SEMUA notifikasi milik user sebagai sudah dibaca.
      * @returns {Promise<Object>}
      */
     markAllAsRead: async () => {
