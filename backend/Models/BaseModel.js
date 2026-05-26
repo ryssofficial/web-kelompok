@@ -1,0 +1,75 @@
+// src/models/BaseModel.js
+import pool from '../db.js';
+import QueryBuilder from '../Databases/QueryBuilder.js';
+import { CaseConverter } from '../utils/CaseConverter.js';
+
+export default class BaseModel {
+    /**
+     * @param {string} tableName 
+     * @param {string} primaryKey 
+     * @param {Array<string>} fillable - 🌟 SOLUSI 1: Whitelist Kolom yang boleh diisi
+     */
+    constructor(tableName, primaryKey = 'id', fillable = []) {
+        this.tableName = tableName;
+        this.primaryKey = primaryKey;
+        this.fillable = fillable;
+    }
+
+    /**
+     * Membuka query builder dengan opsi menyisipkan client transaksi
+     * @param {Object} [trxClient=pool] 
+     */
+    query(trxClient = pool) {
+        return new QueryBuilder(this.tableName, trxClient);
+    }
+
+    // 🌟 Filter Anti-Injeksi Kolom
+    #sanitizeData(data) {
+        if (this.fillable.length === 0) return data; // Jika kosong, anggap semua lolos (riskan)
+        const safeData = {};
+        for (let key in data) {
+            if (this.fillable.includes(key)) {
+                safeData[key] = data[key];
+            }
+        }
+        return safeData;
+    }
+
+    /**
+     * Insert Data Aman
+     */
+    async create(data, trxClient = pool) {
+        const dbData = CaseConverter.transformKeys(data, CaseConverter.toSnakeCase);
+        const safeData = this.#sanitizeData(dbData);
+        
+        const columns = Object.keys(safeData);
+        const values = Object.values(safeData);
+        
+        const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+        const colString = columns.join(', ');
+
+        const sql = `INSERT INTO ${this.tableName} (${colString}) VALUES (${placeholders}) RETURNING *`;
+        const result = await trxClient.query(sql, values);
+        return CaseConverter.transformKeys(result.rows[0], CaseConverter.toCamelCase);
+    }
+
+    /**
+     * 🌟 SOLUSI 3: Eksekutor Transaksi Otomatis
+     * Menjalankan kueri berantai. Jika satu gagal, semua dibatalkan (Rollback).
+     * @param {Function} callback 
+     */
+    static async transaction(callback) {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            const result = await callback(client); // Oper client ke dalam callback
+            await client.query('COMMIT');
+            return result;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release(); // Kembalikan koneksi ke pool
+        }
+    }
+}
