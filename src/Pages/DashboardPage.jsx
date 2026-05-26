@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { DashboardLayout } from "../Components/DashboardLayout";
 import { StyledCard, DataTable, HappyHuesTheme, StyledButton } from "../Components/BaseComponents";
 import { CookieManager } from "../Services/CookiesFactory/BaseCookies";
-import { GoogleCookieFactory } from "../Services/GoogleCookieFactory";
+import { GoogleCookieFactory } from "../Services/CookiesFactory/GoogleCookieFactory";
 
 const manager = new CookieManager();
 const StatHighlight = ({ label, value, icon, color, subtext }) => (
@@ -41,9 +41,7 @@ export default function DashboardPage() {
 
     useEffect(() => {
         const previousVisitCookie = manager.get("LAST_VISIT");
-        if (previousVisitCookie) {
-            setLastVisit(`Kunjungan terakhir: ${decodeURIComponent(previousVisitCookie)}`);
-        }
+        if (previousVisitCookie) { setLastVisit(`Kunjungan terakhir: ${decodeURIComponent(previousVisitCookie)}`); }
 
         const roleCookie = GoogleCookieFactory.createCookie("preference", "USER_ROLE", role);
         manager.save(roleCookie);
@@ -51,7 +49,6 @@ export default function DashboardPage() {
         const now = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
         const visitCookie = GoogleCookieFactory.createCookie("preference", "LAST_VISIT", now);
         manager.save(visitCookie);
-
     }, [role]);
 
     const renderStats = () => (

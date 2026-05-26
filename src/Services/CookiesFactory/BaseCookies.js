@@ -13,45 +13,19 @@ export default class BaseCookies {
 }
 
 export class CookieBuilder {
-    constructor(name, value) {
-        this.cookie = new BaseCookies(name, value);
-    }
-
-    setDuration(days) {
-        this.cookie.maxAge = days * 24 * 60 * 60;
-        return this;
-    }
-
-    makeSecure() {
-        this.cookie.secure = true;
-        return this;
-    }
-
-    setHttpOnly() {
-        this.cookie.httpOnly = true;
-        return this;
-    }
-
-    setSameSite(policy) {
-        this.cookie.sameSite = policy;
-        return this;
-    }
-
-    setDomain(domain) {
-        this.cookie.domain = domain;
-        return this;
-    }
-
-    build() {
-        return this.cookie;
-    }
+    constructor(name, value) { this.cookie = new BaseCookies(name, value); }
+    
+    setDuration(days) { this.cookie.maxAge = days * 24 * 60 * 60; return this; }
+    makeSecure() { this.cookie.secure = true; return this; }
+    setHttpOnly() { this.cookie.httpOnly = true; return this; }
+    setSameSite(policy) { this.cookie.sameSite = policy; return this; }
+    setDomain(domain) { this.cookie.domain = domain; return this; }
+    build() { return this.cookie; }
 }
 
 export class CookieManager {
     constructor() {
-        if (CookieManager.instance) {
-            return CookieManager.instance;
-        }
+        if (CookieManager.instance) { return CookieManager.instance; }
         CookieManager.instance = this;
     }
 
@@ -64,10 +38,7 @@ export class CookieManager {
             httpOnly: cookieObject.httpOnly,
         });
 
-        if (typeof document !== 'undefined') {
-            document.cookie = cookieString;
-        }
-        
+        if (typeof document !== 'undefined') { document.cookie = cookieString; }
         console.log(`[Cookie Saved]: ${cookieString}`);
     }
 

@@ -1,47 +1,38 @@
 import { AxiosConfig } from "../AxiosConfig";
-import { API_URL } from "../API_URL";
 
-const NOTIF_URL = API_URL;
-/**
- * NotifikasiResponse
- * API layer khusus fitur Notifikasi.
- * Endpoint diasumsikan:
- *   GET    /notifikasi          → ambil semua notif milik user (berdasar token)
- *   GET    /notifikasi/unread   → jumlah notif belum dibaca
- *   PUT    /notifikasi/:id/read → tandai satu notif sebagai sudah dibaca
- *   PUT    /notifikasi/read-all → tandai semua notif sebagai sudah dibaca
- *   DELETE /notifikasi/:id      → hapus satu notifikasi
- */
-
+const endpoint = "/notifikasi";
 export const NotifikasiResponse = {
     /**
+     * Ambil semua notifikasi milik user
      * @returns {Promise<Array>}
      */
     getAll: async () => {
-        return await AxiosConfig.get(NOTIF_URL);
+        return await AxiosConfig.get(endpoint);
     },
 
     /**
-     * @param {number} id - id_notif
+     * Tandai satu notif sebagai sudah dibaca
+     * @param {number|string} id - id_notif
      * @returns {Promise<Object>}
      */
     markAsRead: async (id) => {
-        return await AxiosConfig.put(`${NOTIF_URL}/${id}/read`, {});
+        return await AxiosConfig.put(`${endpoint}/${id}/read`, {});
     },
 
     /**
+     * Tandai semua notif sebagai sudah dibaca
      * @returns {Promise<Object>}
      */
     markAllAsRead: async () => {
-        return await AxiosConfig.put(`${NOTIF_URL}/read-all`, {});
+        return await AxiosConfig.put(`${endpoint}/read-all`, {});
     },
 
     /**
      * Hapus satu notifikasi berdasarkan id_notif.
-     * @param {number} id - id_notif
+     * @param {number|string} id - id_notif
      * @returns {Promise<Object>}
      */
     delete: async (id) => {
-        return await AxiosConfig.delete(NOTIF_URL, id);
-    },
+        return await AxiosConfig.delete(endpoint, id);
+    }
 };

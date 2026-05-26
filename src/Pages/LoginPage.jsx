@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-    PageContainer,
-    StyledCard,
-    StyledButton,
-    HappyHuesTheme
-} from "../Components/BaseComponents";
-import { NotificationCustom } from "../Components/Notifications/NotificationCustom"
-import { LoginLogic } from "../Logic/LoginLogic";
+import { PageContainer, StyledCard, StyledButton, HappyHuesTheme } from "../Components/BaseComponents";
+import { NotificationCustom } from "../Components/Notifications/NotificationCustom";
 import { GoogleButton } from "../Components/Button/GoogleButton";
 import { useGoogleLogin } from "@react-oauth/google";
-// Import firebase jika digunakan (Contoh):
-// import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { LoginResponse } from "../API/LoginFitur/LoginResponse";
+import { CookieManager, CookieBuilder } from "../Services/CookiesFactory/BaseCookies";
 
-// Form Input
+const cookieManager = new CookieManager();
 const FormInputFactory = ({ isSiswa, identifier, setIdentifier, password, setPassword }) => {
     const inputStyle = {
         width: '100%',
@@ -26,22 +20,9 @@ const FormInputFactory = ({ isSiswa, identifier, setIdentifier, password, setPas
         boxSizing: 'border-box'
     };
 
-    const labelStyle = {
-        display: 'block',
-        marginBottom: '8px',
-        color: HappyHuesTheme.paragraph,
-        fontWeight: 'bold'
-    };
-
-    const formConfig = isSiswa ? {
-        label: "Nomor Induk Siswa (NIS)",
-        type: "number",
-        placeholder: "Masukkan NIS Anda...",
-    } : {
-        label: "Alamat Email",
-        type: "email",
-        placeholder: "contoh@gmail.com",
-    };
+    const labelStyle = { display: 'block', marginBottom: '8px', color: HappyHuesTheme.paragraph, fontWeight: 'bold' };
+    const formConfig = isSiswa ? { label: "Nomor Induk Siswa (NIS)", type: "number", placeholder: "Masukkan NIS Anda...", } 
+    : { label: "Alamat Email", type: "email", placeholder: "contoh@gmail.com", };
 
     return (
         <div style={{ marginTop: '20px' }}>
@@ -81,83 +62,57 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [notification, setNotification] = useState(null);
     const navigate = useNavigate();
-    const [isSiswa, setIsSiswa] = useState(() => {
-        if (location.state?.role === 'guru') return false;
-        return true;
-    });
+    const [isSiswa, setIsSiswa] = useState(() => { if (location.state?.role === 'guru') return false; return true; });
 
-    const getLogin = (e) => {
+    // ==================================
+    // LOGIN FORM UTAMA (SISWA & GURU) ==
+    // ==================================
+    const getLogin = async (e) => {
         e.preventDefault();
-        const result = isSiswa
-            ? LoginLogic.Siswa(identifier, password)
-            : LoginLogic.Guru(identifier, password);
-            
-        if (result.success) {
-            setNotification({
-                type: 'success',
-                title: 'Login Berhasil',
-                message: `Selamat datang, ${isSiswa ? 'Siswa' : 'Guru'}!`
-            });
+        
+        try {
+            const responseData = isSiswa ? await LoginResponse.siswaLogin(identifier, password) : await LoginResponse.guruLogin(identifier, password);
 
-            setTimeout(() => {
-                navigate(isSiswa ? '/siswa/dashboard' : '/guru/dashboard');
-            }, 1000);
-        } else {
-            setNotification({
-                type: 'error',
-                title: 'Login Gagal',
-                message: result.errorMsg
-            });
-        }
+            const authCookie = new CookieBuilder("token", responseData.token)
+                .setDuration(1)
+                .makeSecure()
+                .setSameSite("Lax")
+                .build();
+            
+            cookieManager.save(authCookie);
+            localStorage.setItem("user", JSON.stringify(responseData.user));
+            setNotification({ type: 'success', title: 'Login Berhasil', message: `Selamat datang, ${isSiswa ? 'Siswa' : 'Guru'}!` });
+            setTimeout(() => { navigate(isSiswa ? '/siswa/dashboard' : '/guru/dashboard'); }, 1000);
+        } catch (errorMsg) { setNotification({ type: 'error', title: 'Login Gagal', message: typeof errorMsg === 'string' ? errorMsg : (errorMsg.message || "Kredensial salah.") }); }
     };
 
-    // ==========================================
-    // FUNGSI LOGIN WITH GOOGLE KHUSUS GURU
-    // ==========================================
+    // ================================
+    // LOGIN WITH GOOGLE KHUSUS GURU ==
+    // ================================
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             try {
-                const response = await fetch("http://localhost:5000/api/auth/google", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                        token: tokenResponse.access_token,  // ← bukan .credential
-                        role: "guru",
-                    }),
-                });
+                const data = await LoginResponse.googleLogin(tokenResponse.access_token);
+                const googleAuthCookie = new CookieBuilder("token", data.token)
+                    .setDuration(1)
+                    .makeSecure()
+                    .setSameSite("Lax")
+                    .build();
 
-                const data = await response.json();
-
-                if (data.success) {
-                    // Simpan JWT internal ke localStorage
-                    localStorage.setItem("token", data.token);
-                    localStorage.setItem("user", JSON.stringify(data.user));
-
-                    setNotification({
-                        type: "success",
-                        title: "Login Google Berhasil",
-                        message: `Selamat datang, ${data.user.nama}!`,
-                    });
-                    setTimeout(() => navigate("/guru/dashboard"), 1000);
-                } else {
-                    throw new Error(data.message);
-                }
+                cookieManager.save(googleAuthCookie);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                setNotification({type: "success", title: "Login Google Berhasil", message: `Selamat datang, ${data.user.nama}!`, });
+                setTimeout(() => navigate("/guru/dashboard"), 1000);
             } catch (err) {
                 setNotification({
                     type: "error",
                     title: "Login Gagal",
-                    message: err.message || "Terjadi kesalahan.",
+                    message: typeof err === 'string' ? err : (err.message || "Terjadi kesalahan."),
                 });
             }
         },
-        onError: () => {
-            setNotification({
-                type: "error",
-                title: "Login Dibatalkan",
-                message: "Proses login Google gagal atau dibatalkan.",
-            });
-        },
-        flow: "implicit", // pakai implicit untuk dapat id_token langsung
+        onError: () => { setNotification({ type: "error", title: "Login Dibatalkan", message: "Proses login Google gagal atau dibatalkan.", }); },
+        flow: "implicit",
     });
 
     const toggleUserType = () => {
@@ -220,7 +175,6 @@ export default function LoginPage() {
                                 label="Masuk Sekarang"
                                 type="primary"
                                 fullWidth={true}
-                                onClick={getLogin}
                                 style={{ marginTop: '20px' }}
                             />
                         </form>
