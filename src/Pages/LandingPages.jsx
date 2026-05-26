@@ -6,7 +6,7 @@ import {
     StyledCard 
 } from '../Components/BaseComponents';
 import { CookieManager } from "../Services/CookiesFactory/BaseCookies";
-import { GoogleCookieFactory } from "../Services/GoogleCookieFactory";
+import { GoogleCookieFactory } from "../Services/CookiesFactory/GoogleCookieFactory";
 import { ModalCustom } from "../Components/Notifications/ModalCustom";
 
 // Singleton Cookie Manager

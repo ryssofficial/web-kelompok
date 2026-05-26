@@ -5,28 +5,13 @@ import DashboardPage from './Pages/DashboardPage';
 import NotifikasiPage from './Pages/NotifikasiPage';
 import ProfileData from './Pages/ProfileData';
 import JadwalPage from './Pages/JadwalPage';
-
-const JadwalPageWrapper = () => {
-    const { role } = useParams();
-    const roleProp = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Siswa';
-    return <JadwalPage role={roleProp} />;
-};
 import KeuanganPage from './Pages/KeuanganPage';
 import AbsensiFitur from './Pages/AbsensiFitur';
 import NilaiTugasFitur from './Pages/NilaiTugasFitur';
 
-const KeuanganPageWrapper = () => {
-    const {role} = useParams();
-    const roleProp = role.charAt(0).toUpperCase() + role.slice(1);
-    return <KeuanganPage role={roleProp} />;
-};
-
-const AbsensiFiturWrapper = () => {
-    const { role } = useParams();
-    const roleProp = role.charAt(0).toUpperCase() + role.slice(1);
-    return <AbsensiFitur role={roleProp} />;
-};
-
+const JadwalPageWrapper = () => { const { role } = useParams(); const roleProp = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Siswa'; return <JadwalPage role={roleProp} />; };
+const KeuanganPageWrapper = () => { const {role} = useParams(); const roleProp = role.charAt(0).toUpperCase() + role.slice(1); return <KeuanganPage role={roleProp} />; };
+const AbsensiFiturWrapper = () => { const { role } = useParams(); const roleProp = role.charAt(0).toUpperCase() + role.slice(1); return <AbsensiFitur role={roleProp} />; };
 
 export default function App() {
     return (

@@ -1,4 +1,4 @@
-import { CookieBuilder } from './CookiesFactory/BaseCookies.js';
+import { CookieBuilder } from './BaseCookies.js';
 
 export class GoogleCookieFactory {
     static createCookie(purpose, name, value) {
