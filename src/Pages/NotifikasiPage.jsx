@@ -4,9 +4,6 @@ import { StyledButton, StyledCard, HappyHuesTheme, PageContainer } from "../Comp
 import { DeleteButton } from "../Components/Button/DeleteButton";
 import { NotifikasiResponse } from "../API/ArisFitur/NotifikasiResponse";
 
-// ─────────────────────────────────────────────
-// Helper: format tanggal ke format lokal Indonesia
-// ─────────────────────────────────────────────
 const formatTanggal = (isoString) => {
     if (!isoString) return "-";
     return new Date(isoString).toLocaleString("id-ID", {
@@ -18,12 +15,8 @@ const formatTanggal = (isoString) => {
     });
 };
 
-// ─────────────────────────────────────────────
-// Komponen: satu baris notifikasi
-// ─────────────────────────────────────────────
 const NotifItem = ({ notif, onRead, onDelete }) => {
     const isUnread = !notif.is_read;
-
     const containerStyle = {
         display: "flex",
         alignItems: "flex-start",
@@ -51,10 +44,8 @@ const NotifItem = ({ notif, onRead, onDelete }) => {
 
     return (
         <div style={containerStyle}>
-            {/* Dot indikator belum/sudah dibaca */}
             <div style={dotStyle} title={isUnread ? "Belum dibaca" : "Sudah dibaca"} />
 
-            {/* Konten notifikasi */}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "8px" }}>
                     <p style={{
@@ -86,7 +77,6 @@ const NotifItem = ({ notif, onRead, onDelete }) => {
                 </p>
             </div>
 
-            {/* Aksi */}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-end" }}>
                 {isUnread && (
                     <StyledButton
@@ -103,9 +93,6 @@ const NotifItem = ({ notif, onRead, onDelete }) => {
     );
 };
 
-// ─────────────────────────────────────────────
-// Komponen: Empty state
-// ─────────────────────────────────────────────
 const EmptyState = () => (
     <div style={{
         textAlign: "center",
@@ -122,9 +109,6 @@ const EmptyState = () => (
     </div>
 );
 
-// ─────────────────────────────────────────────
-// Komponen: Loading skeleton
-// ─────────────────────────────────────────────
 const LoadingSkeleton = () => (
     <div>
         {[1, 2, 3].map((i) => (
@@ -142,9 +126,6 @@ const LoadingSkeleton = () => (
     </div>
 );
 
-// ─────────────────────────────────────────────
-// Halaman Utama: NotifikasiPage
-// ─────────────────────────────────────────────
 const NotifikasiPage = ({ role = "Guru" }) => {
     const [notifikasi, setNotifikasi] = useState([]);
     const [filter, setFilter] = useState("semua"); // "semua" | "belum" | "sudah"
@@ -152,13 +133,11 @@ const NotifikasiPage = ({ role = "Guru" }) => {
     const [error, setError] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
 
-    // ── Fetch ──────────────────────────────────
     const fetchNotifikasi = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
             const data = await NotifikasiResponse.getAll();
-            // Backend mengembalikan array; normalkan jika perlu
             setNotifikasi(Array.isArray(data) ? data : data?.data ?? []);
         } catch (err) {
             setError("Gagal memuat notifikasi. Silakan coba lagi.");
@@ -172,7 +151,6 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         fetchNotifikasi();
     }, [fetchNotifikasi]);
 
-    // ── Tandai satu sebagai dibaca ─────────────
     const handleMarkAsRead = async (id) => {
         try {
             await NotifikasiResponse.markAsRead(id);
@@ -185,7 +163,6 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         }
     };
 
-    // ── Tandai semua sebagai dibaca ────────────
     const handleMarkAllAsRead = async () => {
         if (unreadCount === 0) return;
         setActionLoading(true);
@@ -200,7 +177,6 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         }
     };
 
-    // ── Hapus ──────────────────────────────────
     const handleDelete = async (id) => {
         if (!window.confirm("Hapus notifikasi ini?")) return;
         try {
@@ -212,7 +188,6 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         }
     };
 
-    // ── Derived state ──────────────────────────
     const unreadCount = notifikasi.filter((n) => !n.is_read).length;
 
     const filtered = notifikasi.filter((n) => {
@@ -221,7 +196,6 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         return true;
     });
 
-    // ── Filter tabs ────────────────────────────
     const filterTabs = [
         { key: "semua", label: `Semua (${notifikasi.length})` },
         { key: "belum", label: `Belum Dibaca (${unreadCount})` },
@@ -243,18 +217,14 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         letterSpacing: "0.5px",
     });
 
-    // ──────────────────────────────────────────
     return (
         <DashboardLayout role={role} activeMenu="Notifikasi">
             <PageContainer>
-
-                {/* ── Header aksi ── */}
                 <StyledCard
                     title={`🔔 Notifikasi ${unreadCount > 0 ? `(${unreadCount} baru)` : ""}`}
                     accentColor={HappyHuesTheme.highlight}
                 >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
-                        {/* Filter tabs */}
                         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                             {filterTabs.map((tab) => (
                                 <button
@@ -267,7 +237,6 @@ const NotifikasiPage = ({ role = "Guru" }) => {
                             ))}
                         </div>
 
-                        {/* Aksi bulk */}
                         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                             <StyledButton
                                 label={actionLoading ? "Memproses..." : "✓ Tandai Semua Dibaca"}
@@ -285,7 +254,6 @@ const NotifikasiPage = ({ role = "Guru" }) => {
                     </div>
                 </StyledCard>
 
-                {/* ── Error state ── */}
                 {error && (
                     <div style={{
                         padding: "16px 20px",
@@ -301,7 +269,6 @@ const NotifikasiPage = ({ role = "Guru" }) => {
                     </div>
                 )}
 
-                {/* ── Daftar notifikasi ── */}
                 <StyledCard accentColor={HappyHuesTheme.tertiary}>
                     {loading ? (
                         <LoadingSkeleton />
@@ -318,7 +285,6 @@ const NotifikasiPage = ({ role = "Guru" }) => {
                         ))
                     )}
                 </StyledCard>
-
             </PageContainer>
         </DashboardLayout>
     );

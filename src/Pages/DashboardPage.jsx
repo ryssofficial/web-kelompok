@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { DashboardLayout } from "../Components/DashboardLayout";
 import { StyledCard, DataTable, HappyHuesTheme, StyledButton } from "../Components/BaseComponents";
+import { CookieManager } from "../Services/CookiesFactory/BaseCookies";
+import { GoogleCookieFactory } from "../Services/GoogleCookieFactory";
 
-// Komponen Statistik yang diperbarui agar lebih modern
+const manager = new CookieManager();
 const StatHighlight = ({ label, value, icon, color, subtext }) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -35,6 +37,22 @@ const StatHighlight = ({ label, value, icon, color, subtext }) => (
 export default function DashboardPage() {
     const { role } = useParams();
     const isGuru = role === 'guru';
+    const [lastVisit, setLastVisit] = useState("Ini kunjungan pertamamu!");
+
+    useEffect(() => {
+        const previousVisitCookie = manager.get("LAST_VISIT");
+        if (previousVisitCookie) {
+            setLastVisit(`Kunjungan terakhir: ${decodeURIComponent(previousVisitCookie)}`);
+        }
+
+        const roleCookie = GoogleCookieFactory.createCookie("preference", "USER_ROLE", role);
+        manager.save(roleCookie);
+
+        const now = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+        const visitCookie = GoogleCookieFactory.createCookie("preference", "LAST_VISIT", now);
+        manager.save(visitCookie);
+
+    }, [role]);
 
     const renderStats = () => (
         <div style={{ 
@@ -83,10 +101,18 @@ export default function DashboardPage() {
                     `}
                 </style>
                 
+                <div style={{ marginBottom: '20px' }}>
+                    <h1 style={{ color: HappyHuesTheme.stroke, marginBottom: '5px' }}>
+                        Halo, {isGuru ? 'Bapak/Ibu Guru' : 'Siswa'}! 👋
+                    </h1>
+                    <p style={{ color: HappyHuesTheme.paragraph, marginTop: 0, fontWeight: 'bold' }}>
+                        {lastVisit}
+                    </p>
+                </div>
+                
                 {renderStats()}
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '30px', alignItems: 'start' }}>
-                    {/* Kolom Kiri: Tabel Jadwal */}
                     <StyledCard title={isGuru ? "Jadwal Mengajar Hari Ini" : "Jadwal Pelajaran Hari Ini"}>
                         <DataTable 
                             headers={["Waktu", "Mata Pelajaran", isGuru ? "Kelas" : "Ruang", "Status"]} 
@@ -100,7 +126,6 @@ export default function DashboardPage() {
                         />
                     </StyledCard>
 
-                    {/* Kolom Kanan: Notifikasi */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                         <StyledCard title="Notifikasi Terbaru" accentColor={HappyHuesTheme.secondary}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

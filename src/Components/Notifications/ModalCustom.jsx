@@ -9,15 +9,11 @@ export const ModalCustom = ({
     onConfirm, 
     confirmLabel = "Ya, Lanjutkan",
     cancelLabel = "Batal",
-    type = "info" // info, danger (untuk hapus)
+    type = "info"
 }) => {
     if (!isOpen) return null;
 
-    // Menutup modal jika area gelap di luar modal di klik
-    const handleOverlayClick = (e) => {
-        if (e.target === e.currentTarget) onClose();
-    };
-
+    const handleOverlayClick = (e) => { if (e.target === e.currentTarget) onClose(); };
     const accentColor = type === "danger" ? HappyHuesTheme.tertiary : HappyHuesTheme.button;
 
     return (
@@ -29,12 +25,12 @@ export const ModalCustom = ({
                 left: 0,
                 width: '100%',
                 height: '100%',
-                backgroundColor: 'rgba(15, 14, 23, 0.8)', // Background gelap transparan
+                backgroundColor: 'rgba(15, 14, 23, 0.8)', 
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 zIndex: 10000,
-                backdropFilter: 'blur(4px)' // Efek blur tipis kekinian
+                backdropFilter: 'blur(4px)' 
             }}
         >
             <div style={{
@@ -47,7 +43,6 @@ export const ModalCustom = ({
                 position: 'relative',
                 animation: 'modalSlide 0.3s ease-out'
             }}>
-                {/* Tombol Close di Pojok */}
                 <button 
                     onClick={onClose}
                     style={{
@@ -64,7 +59,6 @@ export const ModalCustom = ({
                     ×
                 </button>
 
-                {/* Judul Modal */}
                 <h2 style={{ 
                     marginTop: 0, 
                     color: accentColor, 
@@ -75,12 +69,10 @@ export const ModalCustom = ({
                     {title}
                 </h2>
 
-                {/* Isi Modal */}
                 <div style={{ margin: '20px 0', color: HappyHuesTheme.paragraph, fontWeight: 'bold' }}>
                     {children}
                 </div>
 
-                {/* Tombol Aksi */}
                 <div style={{ 
                     display: 'flex', 
                     justifyContent: 'flex-end', 
@@ -90,7 +82,7 @@ export const ModalCustom = ({
                     <StyledButton 
                         label={cancelLabel} 
                         onClick={onClose} 
-                        color="#a7a9be" // Warna abu-abu untuk batal
+                        color="#a7a9be" 
                         padding="8px 15px"
                     />
                     <StyledButton 
@@ -105,7 +97,6 @@ export const ModalCustom = ({
                 </div>
             </div>
 
-            {/* Animasi Sederhana */}
             <style>
                 {`
                     @keyframes modalSlide {

@@ -5,13 +5,11 @@
     const SidebarItem = ({ icon, label, isActive, onClick, isDanger }) => {
         const [isHovered, setIsHovered] = useState(false);
 
-        // Menentukan warna background berdasarkan state
         let bgColor = 'transparent';
         if (isActive) bgColor = HappyHuesTheme.button;
         else if (isHovered && isDanger) bgColor = HappyHuesTheme.secondary;
         else if (isHovered) bgColor = HappyHuesTheme.tertiary;
 
-        // Menentukan warna font agar tidak menyatu dengan background putih
         const textColor = (isActive || isHovered) ? HappyHuesTheme.buttonText : HappyHuesTheme.stroke;
 
         return (
@@ -109,7 +107,6 @@
                     </div>
                 </aside>
 
-                {/* MAIN CONTENT Area */}
                 <main style={{ marginLeft: '300px', width: '100%', padding: '50px', boxSizing: 'border-box' }}>
                     <header style={{ 
                         display: 'flex', 

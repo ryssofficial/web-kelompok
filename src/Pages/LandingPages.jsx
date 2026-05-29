@@ -1,13 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     HappyHuesTheme, 
     StyledButton, 
     StyledCard 
 } from '../Components/BaseComponents';
+import { CookieManager } from "../Services/CookiesFactory/BaseCookies";
+import { GoogleCookieFactory } from "../Services/GoogleCookieFactory";
+import { ModalCustom } from "../Components/Notifications/ModalCustom";
+
+// Singleton Cookie Manager
+const manager = new CookieManager();
 
 const LandingPage = () => {
     const navigate = useNavigate();
+
+    // State Cookie & Modal
+    const [showCookieModal, setShowCookieModal] = useState(false);
+    const [isManageSettings, setIsManageSettings] = useState(false);
+    const [allowAnalytics, setAllowAnalytics] = useState(true);
+
+    useEffect(() => {
+        // Cek apakah user sudah memberikan persetujuan cookie
+        const consentCookie = manager.get("COOKIE_CONSENT");
+        if (!consentCookie) {
+            setShowCookieModal(true);
+        }
+    }, []);
+
+    // Fungsi untuk menyimpan persetujuan cookie
+    const handleSaveConsent = (type) => {
+        let consentValue = type === 'all' ? 'all_granted' : (allowAnalytics ? 'custom_analytics' : 'essential_only');
+        
+        const newConsentCookie = GoogleCookieFactory.createCookie("preference", "COOKIE_CONSENT", consentValue);
+        manager.save(newConsentCookie);
+        
+        setShowCookieModal(false);
+    };
 
     const containerStyle = {
         backgroundColor: HappyHuesTheme.background,
@@ -97,7 +126,6 @@ const LandingPage = () => {
                             <StyledButton 
                                 label="Login Guru" 
                                 fullWidth={true} 
-                                // Kirim state 'guru'
                                 onClick={() => navigate('/login', { state: { role: 'guru' } })} 
                             />
                         </StyledCard>
@@ -109,8 +137,7 @@ const LandingPage = () => {
                                 label="Login Siswa" 
                                 type="secondary" 
                                 fullWidth={true} 
-                                // Kirim state 'siswa'
-                                onClick={() => navigate('/login', { state: { role   : 'siswa' } })} 
+                                onClick={() => navigate('/login', { state: { role: 'siswa' } })} 
                             />
                         </StyledCard>
                     </div>
@@ -126,6 +153,63 @@ const LandingPage = () => {
             }}>
                 <p>© 2026 SmartSchool Project. Build with Passion.</p>
             </footer>
+
+            {/* --- MODAL COOKIE CONSENT --- */}
+            <ModalCustom
+                isOpen={showCookieModal}
+                onClose={() => setShowCookieModal(false)}
+                title={isManageSettings ? "Kelola Preferensi Cookie ⚙️" : "Izin Cookie 🍪"}
+                confirmLabel={isManageSettings ? "Simpan Pilihan" : "Terima Semua"}
+                cancelLabel={isManageSettings ? "Kembali" : "Tutup"}
+                onConfirm={() => handleSaveConsent(isManageSettings ? 'custom' : 'all')}
+            >
+                {!isManageSettings ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <p style={{ margin: 0, lineHeight: '1.6', fontWeight: 'normal' }}>
+                            Kami menggunakan cookie untuk memastikan Anda mendapatkan pengalaman terbaik, 
+                            mengingat kunjungan terakhir Anda, dan menyimpan preferensi tema. 
+                        </p>
+                        <p 
+                            onClick={() => setIsManageSettings(true)}
+                            style={{ 
+                                margin: 0, 
+                                color: HappyHuesTheme.highlight, 
+                                textDecoration: 'underline', 
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                width: 'fit-content'
+                            }}
+                        >
+                            Kelola pengaturan cookie
+                        </p>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', fontWeight: 'normal' }}>
+                        <p style={{ margin: 0, marginBottom: '10px' }}>Pilih jenis cookie yang Anda izinkan:</p>
+                        
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'not-allowed', opacity: 0.7 }}>
+                            <input type="checkbox" checked disabled style={{ width: '18px', height: '18px' }} />
+                            <div>
+                                <span style={{ fontWeight: 'bold', display: 'block' }}>Cookie Esensial (Wajib)</span>
+                                <small style={{ fontSize: '12px' }}>Dibutuhkan agar website berfungsi normal.</small>
+                            </div>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={allowAnalytics} 
+                                onChange={(e) => setAllowAnalytics(e.target.checked)} 
+                                style={{ width: '18px', height: '18px', accentColor: HappyHuesTheme.highlight }} 
+                            />
+                            <div>
+                                <span style={{ fontWeight: 'bold', display: 'block' }}>Preferensi & Analitik</span>
+                                <small style={{ fontSize: '12px' }}>Mengingat peran Anda dan mengumpulkan data penggunaan.</small>
+                            </div>
+                        </label>
+                    </div>
+                )}
+            </ModalCustom>
         </div>
     );
 };
