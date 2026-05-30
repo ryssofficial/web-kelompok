@@ -1,6 +1,7 @@
 // backend/Routes/BaseRoute.js
 import express from "express";
 import Login from "./Login.js"
+import NotifikasiRoute from "./NotifikasiRoute.js";
 
 /**
  * CONTOH: TINGGAL IMPORT AJA
@@ -19,5 +20,6 @@ const BaseRouter = express.Router();
  */
 
 BaseRouter.use("/auth", Login);
+BaseRouter.use("/notifikasi", NotifikasiRoute);
 
 export default BaseRouter;

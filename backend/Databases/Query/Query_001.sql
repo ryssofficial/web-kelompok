@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS public.tahun_akademik (
     semester VARCHAR(6) NOT NULL,
     status_aktif BOOLEAN DEFAULT false
 );
-ALTER TABLE public.tahun_akademik OWNER TO "USERS";
+ALTER TABLE IF EXISTS public.tahun_akademik OWNER TO "USERS";
 
-CREATE TABLE IF NOT EXISTS public.siswa (
+CREATE TABLE IF EXISTS public.siswa (
     id_siswa SERIAL PRIMARY KEY,  
     nis_siswa BIGINT NOT NULL UNIQUE, 
     nama_siswa VARCHAR(50) NOT NULL, 
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.siswa (
     tahun_keluar SMALLINT DEFAULT NULL, 
     password_siswa VARCHAR(255) NOT NULL UNIQUE
 );
-ALTER TABLE public.siswa OWNER TO postgres;
+ALTER TABLE IF EXISTS public.siswa OWNER TO postgres;
 
 CREATE TABLE IF NOT EXISTS public.mata_pelajaran (
     id_mapel SERIAL PRIMARY KEY, 
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.mata_pelajaran (
     buku_untuk_kelas SMALLINT NOT NULL,
     CONSTRAINT check_tingkat_sd CHECK (buku_untuk_kelas >= 1 AND buku_untuk_kelas <= 6)
 );
-ALTER TABLE public.mata_pelajaran OWNER TO "USERS";
+ALTER TABLE IF EXISTS public.mata_pelajaran OWNER TO "USERS";
 
 CREATE TABLE IF NOT EXISTS public.kategori_rombel (
     id_kategori SERIAL PRIMARY KEY, 
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.jabatan (
     id_jabatan SERIAL PRIMARY KEY,
     nama_jabatan VARCHAR(20) NOT NULL UNIQUE
 );
-ALTER TABLE public.jabatan OWNER TO postgres;
+ALTER TABLE IF EXISTS public.jabatan OWNER TO postgres;
 
 ---------------------------------
 -- 2. DATA MULTI VALUED ATTRIBUTE
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS public.guru (
     
     CONSTRAINT fk_id_jabatan FOREIGN KEY (id_jabatan) REFERENCES public.jabatan(id_jabatan)
 );
-ALTER TABLE public.guru OWNER TO "USERS";
+ALTER TABLE IF EXISTS public.guru OWNER TO "USERS";
 
 CREATE TABLE IF NOT EXISTS public.kelompok_jabatan (
     id_kelompok SERIAL PRIMARY KEY, 
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS public.kelompok_jabatan (
     CONSTRAINT fk_guru FOREIGN KEY (id_guru) REFERENCES public.guru(id_guru)
 );
 -- Perbaikan Typo: kelompook -> kelompok
-ALTER TABLE public.kelompok_jabatan OWNER TO "USERS";
+ALTER TABLE IF EXISTS public.kelompok_jabatan OWNER TO "USERS";
 
 CREATE TABLE IF NOT EXISTS public.rombongan_mapel(
     id_rombongan SERIAL PRIMARY KEY,  
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS public.rombel (
     CONSTRAINT fk_wali_kelas FOREIGN KEY (id_guru) REFERENCES public.guru(id_guru), 
     CONSTRAINT fk_tahun_akademik FOREIGN KEY (id_tahun) REFERENCES public.tahun_akademik(id_tahun)
 );
-ALTER TABLE public.rombel OWNER TO "USERS";
+ALTER TABLE IF EXISTS public.rombel OWNER TO "USERS";
 
 CREATE TABLE IF NOT EXISTS public.anggota_rombel (
     id_anggota SERIAL PRIMARY KEY,
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS public.anggota_rombel (
     CONSTRAINT fk_anggota_siswa FOREIGN KEY (id_siswa) REFERENCES public.siswa(id_siswa) ON DELETE CASCADE,
     CONSTRAINT unique_siswa_per_tahun UNIQUE (id_rombel, id_siswa)
 );
-ALTER TABLE public.anggota_rombel OWNER TO "USERS";
+ALTER TABLE IF EXISTS public.anggota_rombel OWNER TO "USERS";
 
 CREATE TABLE IF NOT EXISTS public.jadwal (
     id_jadwal SERIAL PRIMARY KEY, 
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS public.jadwal (
     CONSTRAINT fk_jadwal_guru FOREIGN KEY (id_guru) REFERENCES public.guru(id_guru),
     CONSTRAINT fk_jadwal_rombel FOREIGN KEY (id_rombel) REFERENCES public.rombel(id_rombel)
 );
-ALTER TABLE public.jadwal OWNER TO "USERS";
+ALTER TABLE IF EXISTS public.jadwal OWNER TO "USERS";
 
 CREATE TABLE IF NOT EXISTS public.nilai_tugas (
     id_nilai SERIAL PRIMARY KEY,
@@ -168,7 +168,7 @@ CREATE TABLE IF NOT EXISTS public.tabungan (
     CONSTRAINT fk_tabungan_siswa FOREIGN KEY (id_anggota) REFERENCES public.anggota_rombel(id_anggota),
     CONSTRAINT fk_tabungan_rombel FOREIGN KEY (id_rombel) REFERENCES public.rombel(id_rombel)
 );
-ALTER TABLE public.tabungan OWNER TO postgres;
+ALTER TABLE IF EXISTS public.tabungan OWNER TO postgres;
 
 CREATE TABLE IF NOT EXISTS public.pemasukkan (
     id_pemasukkan SERIAL PRIMARY KEY, 
@@ -206,7 +206,7 @@ CREATE TABLE IF NOT EXISTS public.log_data (
     ip_address VARCHAR(16) NOT NULL,
     keterangan TEXT DEFAULT 'Daftar Pengunjung'
 );
-ALTER TABLE public.log_data OWNER TO postgres;
+ALTER TABLE IF EXISTS public.log_data OWNER TO postgres;
 
 CREATE TABLE IF NOT EXISTS public.notifikasi (
     id_notif SERIAL PRIMARY KEY,
@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS public.notifikasi (
     CONSTRAINT fk_notif_guru FOREIGN KEY (id_guru) REFERENCES public.guru(id_guru),
     CONSTRAINT fk_notif_siswa FOREIGN KEY (id_siswa) REFERENCES public.siswa(id_siswa)
 );
-ALTER TABLE public.notifikasi OWNER TO "USERS";
+ALTER TABLE IF EXISTS public.notifikasi OWNER TO "USERS";
 
 CREATE TABLE IF NOT EXISTS public.kas (
     id_kas SERIAL PRIMARY KEY,
@@ -229,7 +229,7 @@ CREATE TABLE IF NOT EXISTS public.kas (
     
     CONSTRAINT fk_kas_rombel FOREIGN KEY (id_rombel) REFERENCES public.rombel(id_rombel) ON DELETE CASCADE
 );
-ALTER TABLE public.kas OWNER TO postgres;
+ALTER TABLE IF EXISTS public.kas OWNER TO postgres;
 
 CREATE TABLE IF NOT EXISTS public.pemasukkan_kas (
     id_pemasukkan_kas SERIAL PRIMARY KEY,
@@ -361,3 +361,81 @@ CREATE UNIQUE INDEX idx_guru_dapodik ON public.guru (dapodik);
 -------------------
 -- UPDATE QUERY  --
 -------------------
+
+INSERT INTO public.jabatan (nama_jabatan)
+VALUES 
+('Kepala Sekolah'), 
+('Staff'), 
+('Guru'), 
+('Wali Kelas');
+
+----------------------------------------------------------
+
+INSERT INTO public.tahun_akademik (tahun_ajaran, semester)
+VALUES
+('2025-2026', 'Genap'), 
+('2026-2027', 'Ganjil');
+
+----------------------------------------------------------
+
+INSERT INTO public.siswa(
+	nis_siswa, 
+	nama_siswa, 
+	tahun_masuk, 
+	tahun_keluar, 
+	password_siswa
+) VALUES 
+('09020624025', 'Arisula Buamona', 2020, null, 'A01B5002');
+
+----------------------------------------------------------
+
+INSERT INTO public.mata_pelajaran(
+	mapel, 
+	kurikulum, 
+	stok_buku, 
+	buku_untuk_kelas
+) VALUES 
+('Matematika', 'merdeka', 100, 1), 
+('Bahasa Indonesia', 'merdeka', 100, 1), 
+('Bahasa Inggris', 'merdeka', 100, 1);
+
+----------------------------------------------------------
+
+INSERT INTO public.kategori_rombel(
+	kategori
+) VALUES 
+('A'), 
+('B'), 
+('C');
+
+----------------------------------------------------------
+
+INSERT INTO public.guru(
+	dapodik, 
+	nip, 
+	nama_guru, 
+	id_jabatan, 
+	google_id, 
+	email, 
+	password_guru
+) VALUES 
+('12345678901234567890', '123456789012345678', 'Adisyah Reza', 
+4, null, 'ryssofficial1@gmail.com', 'Arisulaa01112005');
+
+----------------------------------------------------------
+
+
+
+----------------------------------------------------------
+
+----------------------------------------------------------
+
+----------------------------------------------------------
+
+----------------------------------------------------------
+
+----------------------------------------------------------
+
+----------------------------------------------------------
+
+----------------------------------------------------------
