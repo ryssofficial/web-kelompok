@@ -38,8 +38,7 @@ export const LoginResponse = {
      * @returns {Promise<Object>} Akun guru terverifikasi beserta internal JWT token
      */
     googleLogin: async (googleToken) => {
-        // Mengirim token pihak ketiga ke backend internal: baseURL + "/auth/google"
-        return await AxiosConfig.post(`${ENDPOINT_PATH}/google`, {
+        return await AxiosConfig.post(`${ENDPOINT_PATH}/login/google`, {
             token: googleToken,
             role: "guru"
         });
