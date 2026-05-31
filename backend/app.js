@@ -25,7 +25,7 @@ app.use((req, res) => sendNotFound(res));
 
 app.listen(PORT, () => {
     console.log(`=============================================================`);
-    console.log(`== 🚀 Backend SEBEL berjalan di: http://localhost:${PORT}  ==`);
+    console.log(`== 🚀 Backend SEBEL berjalan di: http://localhost:${PORT}     ==`);
     console.log(`== 🔓 JWT TOKEN SIAP DIGUNAKAN                             ==`);
     console.log(`=============================================================`);
 });

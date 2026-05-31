@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { API_URL } from "./API_URL";
+import { CookieManager } from "../Services/CookiesFactory/BaseCookies";
 
+const manager = new CookieManager(); // 🌟 Buat instance manager
 export const instance = axios.create({
     baseURL: API_URL,
     headers: {
@@ -10,11 +12,11 @@ export const instance = axios.create({
 
 instance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
+        const token = manager.get('token'); 
+        
+        if (token) { config.headers.Authorization = `Bearer ${token}`; }
+        
+            return config;
     },
     (error) => {
         return Promise.reject(error);
@@ -24,10 +26,8 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('token');
-            window.location.href = '/login';
-        }
+        if (error.response?.status === 401) { window.location.href = '/login'; }
+        
         return Promise.reject(error);
     }
 );
