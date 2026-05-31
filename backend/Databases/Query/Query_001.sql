@@ -424,18 +424,175 @@ INSERT INTO public.guru(
 
 ----------------------------------------------------------
 
+INSERT INTO public.kelompok_jabatan (id_jabatan, id_guru) VALUES 
+(4, 1);
 
+INSERT INTO public.rombongan_mapel (id_mapel, id_guru) VALUES 
+(1, 1);
+
+INSERT INTO public.pengajar (id_mapel, id_guru) VALUES 
+(1, 1), 
+(2, 1);
+
+INSERT INTO public.rombel (kelas, id_kategori, id_guru, id_tahun) VALUES 
+(1, 1, 1, 1);
+
+INSERT INTO public.anggota_rombel (id_rombel, id_siswa, status_siswa) VALUES 
+(1, 1, 'Aktif');
+
+INSERT INTO public.jadwal (hari, jam_mulai, jam_selesai, id_mapel, id_guru, id_rombel, id_tahun) VALUES 
+('Senin', '07:30:00', '09:00:00', 1, 1, 1, 1),
+('Selasa', '09:30:00', '11:00:00', 2, 1, 1, 1);
+
+INSERT INTO public.nilai_tugas (id_anggota, id_mapel, tugas_ke, nilai, id_guru) VALUES 
+(1, 1, 1, 85.50, 1);
+
+INSERT INTO public.presensi (id_anggota, tugas_ke, status_kehadiran) VALUES 
+(1, 1, 'H');
+
+INSERT INTO public.pemasukkan (id_tabungan, id_guru, jumlah_masuk, keterangan) VALUES 
+(1, 1, 50000.00, 'Menabung setoran awal');
+
+INSERT INTO public.pengeluaran (id_tabungan, id_guru, jumlah_keluar, keterangan) VALUES 
+(1, 1, 20000.00, 'Tarik tunai beli buku');
+
+INSERT INTO public.log_data (id_guru, id_siswa, ip_address, keterangan) VALUES 
+(1, null, '192.168.1.10', 'Guru Adisyah login ke sistem'),
+(null, 1, '192.168.1.15', 'Siswa Arisula melihat nilai');
+INSERT INTO public.notifikasi (id_guru, id_siswa, judul, pesan) VALUES 
+(null, 1, 'Pengumuman Libur', 'Hari esok sekolah diliburkan dalam rangka hari besar.');
+
+INSERT INTO public.kas (id_rombel, saldo_kas) VALUES 
+(1, 0);
+
+INSERT INTO public.pemasukkan_kas (id_kas, id_guru, jumlah_masuk, keterangan) VALUES 
+(1, 1, 100000.00, 'Iuran kas bulanan Januari kelas 1A');
+
+INSERT INTO public.pengeluaran_kas (id_kas, id_guru, jumlah_keluar, keterangan) VALUES 
+(1, 1, 35000.00, 'Beli sapu dan kemoceng kelas');
+
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
 
 ----------------------------------------------------------
+-- 1. TAMBAH DATA SISWA (Kelas 1 - 6)
+----------------------------------------------------------
+INSERT INTO public.siswa (nis_siswa, nama_siswa, tahun_masuk, tahun_keluar, password_siswa) VALUES 
+('09020624026', 'Budi Santoso', 2021, null, 'SiswaBudi01'),
+('09020624027', 'Siti Aminah', 2021, null, 'SitiAminah02'),
+('09020624028', 'Joko Widodo', 2022, null, 'JokoW03'),
+('09020624029', 'Rina Marlina', 2022, null, 'RinaM04'),
+('09020624030', 'Andi Firmansyah', 2023, null, 'AndiF05'),
+('09020624031', 'Maya Indah', 2023, null, 'MayaI06'),
+('09020624032', 'Eko Prasetyo', 2024, null, 'EkoP07'),
+('09020624033', 'Sari Melati', 2024, null, 'SariM08');
 
 ----------------------------------------------------------
+-- 2. TAMBAH MATA PELAJARAN (Sesuai Kurikulum Merdeka SD)
+----------------------------------------------------------
+INSERT INTO public.mata_pelajaran (mapel, kurikulum, stok_buku, buku_untuk_kelas) VALUES 
+('Pendidikan Pancasila', 'merdeka', 50, 1),
+('Ilmu Pengetahuan Alam dan Sosial (IPAS)', 'merdeka', 60, 4),
+('Pendidikan Jasmani Olahraga Kesehatan', 'merdeka', 40, 2),
+('Seni Budaya dan Prakarya', 'merdeka', 40, 3),
+('Pendidikan Agama Islam', 'merdeka', 100, 1);
 
 ----------------------------------------------------------
+-- 3. TAMBAH DATA GURU & KEPALA SEKOLAH
+----------------------------------------------------------
+-- Ingat: NIP harus tepat 18 digit angka, Dapodik >= 10 karakter.
+INSERT INTO public.guru (dapodik, nip, nama_guru, id_jabatan, email, password_guru) VALUES 
+('12345678901234567891', '123456789012345679', 'Bambang Supriyanto', 4, 'bambang@gmail.com', 'GuruBambang01'),
+('12345678901234567892', '123456789012345680', 'Sri Wahyuni', 4, 'sriwahyuni@gmail.com', 'GuruSri02'),
+('12345678901234567893', '123456789012345681', 'Ahmad Hidayat', 3, 'ahmad@gmail.com', 'GuruAhmad03'),
+('12345678901234567894', '123456789012345682', 'Nia Ramadhani', 3, 'nia@gmail.com', 'GuruNia04'),
+('12345678901234567895', '123456789012345683', 'Iwan Fals', 1, 'kepsek@gmail.com', 'Kepsek01');
 
 ----------------------------------------------------------
+-- 4. KELOMPOK JABATAN & PENGAJAR MAPEL
+----------------------------------------------------------
+INSERT INTO public.kelompok_jabatan (id_jabatan, id_guru) VALUES 
+(4, 2), -- Bambang (Wali Kelas)
+(4, 3), -- Sri (Wali Kelas)
+(3, 4), -- Ahmad (Guru Mata Pelajaran)
+(1, 6); -- Iwan (Kepala Sekolah)
+
+INSERT INTO public.pengajar (id_mapel, id_guru) VALUES 
+(4, 2), -- Bambang mengajar Pendidikan Pancasila
+(5, 3), -- Sri mengajar IPAS
+(6, 4), -- Ahmad mengajar PJOK
+(8, 2); -- Bambang mengajar Agama Islam
 
 ----------------------------------------------------------
+-- 5. PEMBAGIAN KELAS (ROMBEL) & ANGGOTA KELAS
+----------------------------------------------------------
+INSERT INTO public.rombel (kelas, id_kategori, id_guru, id_tahun) VALUES 
+(2, 1, 2, 1), -- id_rombel 2: Kelas 2A, Wali Kelas Bambang (id_guru=2)
+(3, 1, 3, 1), -- id_rombel 3: Kelas 3A, Wali Kelas Sri (id_guru=3)
+(4, 1, 4, 1), -- id_rombel 4: Kelas 4A, Wali Kelas Ahmad (id_guru=4)
+(5, 1, 5, 1); -- id_rombel 5: Kelas 5A, Wali Kelas Nia (id_guru=5)
+
+-- Memasukkan siswa ke dalam kelas (Otomatis membuat tabungan baru via Trigger trg_auto_tabungan)
+INSERT INTO public.anggota_rombel (id_rombel, id_siswa, status_siswa) VALUES 
+(2, 2, 'Aktif'), -- id_anggota 2: Budi di 2A
+(2, 3, 'Aktif'), -- id_anggota 3: Siti di 2A
+(3, 4, 'Aktif'), -- id_anggota 4: Joko di 3A
+(3, 5, 'Aktif'), -- id_anggota 5: Rina di 3A
+(4, 6, 'Aktif'), -- id_anggota 6: Andi di 4A
+(4, 7, 'Aktif'), -- id_anggota 7: Maya di 4A
+(5, 8, 'Aktif'), -- id_anggota 8: Eko di 5A
+(5, 9, 'Aktif'); -- id_anggota 9: Sari di 5A
 
 ----------------------------------------------------------
+-- 6. JADWAL, NILAI, & PRESENSI
+----------------------------------------------------------
+INSERT INTO public.jadwal (hari, jam_mulai, jam_selesai, id_mapel, id_guru, id_rombel, id_tahun) VALUES 
+('Rabu', '07:30:00', '09:00:00', 4, 2, 2, 1), -- Kelas 2A: Pend. Pancasila
+('Kamis', '09:30:00', '11:00:00', 5, 3, 3, 1), -- Kelas 3A: IPAS
+('Jumat', '07:30:00', '08:30:00', 6, 4, 4, 1); -- Kelas 4A: PJOK
+
+-- Input nilai tugas (otomatis mengirim notifikasi via Trigger trg_notif_nilai_baru)
+INSERT INTO public.nilai_tugas (id_anggota, id_mapel, tugas_ke, nilai, id_guru) VALUES 
+(2, 4, 1, 90.00, 2), -- Nilai Budi
+(3, 4, 1, 88.50, 2), -- Nilai Siti
+(4, 5, 1, 75.00, 3); -- Nilai Joko
+
+-- Input presensi (Karena tugas_ke diset UNIQUE di tabel, valuenya harus beda dari yang sebelumnya)
+INSERT INTO public.presensi (id_anggota, tugas_ke, status_kehadiran) VALUES 
+(2, 2, 'H'), -- Budi: Hadir
+(3, 3, 'I'), -- Siti: Izin
+(4, 4, 'S'); -- Joko: Sakit
 
 ----------------------------------------------------------
+-- 7. TABUNGAN SISWA & KAS KELAS
+----------------------------------------------------------
+-- ID Tabungan berkorespondensi dengan ID Anggota (Budi = 2, Siti = 3, Joko = 4)
+INSERT INTO public.pemasukkan (id_tabungan, id_guru, jumlah_masuk, keterangan) VALUES 
+(2, 2, 20000.00, 'Tabungan harian Budi'),
+(3, 2, 15000.00, 'Tabungan harian Siti'),
+(4, 3, 50000.00, 'Tabungan mingguan Joko');
+
+-- Joko (id_tabungan=4) jajan di koperasi ambil dari tabungan
+INSERT INTO public.pengeluaran (id_tabungan, id_guru, jumlah_keluar, keterangan) VALUES 
+(4, 3, 10000.00, 'Joko tarik tunai jajan koperasi');
+
+-- Buka buku Kas untuk Rombel 2A, 3A, dan 4A
+INSERT INTO public.kas (id_rombel, saldo_kas) VALUES 
+(2, 0),
+(3, 0),
+(4, 0);
+
+-- Transaksi Kas Rombel
+INSERT INTO public.pemasukkan_kas (id_kas, id_guru, jumlah_masuk, keterangan) VALUES 
+(2, 2, 50000.00, 'Iuran Kas kelas 2A dari murid'),
+(3, 3, 60000.00, 'Iuran Kas kelas 3A dari murid');
+
+INSERT INTO public.pengeluaran_kas (id_kas, id_guru, jumlah_keluar, keterangan) VALUES 
+(2, 2, 15000.00, 'Beli spidol dan penghapus kelas 2A');
+
+----------------------------------------------------------
+-- 8. LOG SISTEM
+----------------------------------------------------------
+INSERT INTO public.log_data (id_guru, id_siswa, ip_address, keterangan) VALUES 
+(2, null, '192.168.1.11', 'Guru Bambang login'),
+(null, 4, '192.168.1.20', 'Siswa Joko melihat sisa saldo tabungan');
