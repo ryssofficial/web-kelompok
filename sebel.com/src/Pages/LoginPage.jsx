@@ -83,7 +83,18 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(responseData.user));
             setNotification({ type: 'success', title: 'Login Berhasil', message: `Selamat datang, ${isSiswa ? 'Siswa' : 'Guru'}!` });
             setTimeout(() => { navigate(isSiswa ? '/siswa/dashboard' : '/guru/dashboard'); }, 1000);
-        } catch (errorMsg) { setNotification({ type: 'error', title: 'Login Gagal', message: typeof errorMsg === 'string' ? errorMsg : (errorMsg.message || "Kredensial salah.") }); }
+        } catch (error) { // 🌟 Samakan namanya menjadi 'error'
+            console.error("Respon Error dari Server:", error); // Sekarang aman dicetak
+
+            // Ambil pesan kustom yang dikirim oleh backend
+            const pesanDariBackend = error.response?.data?.message;
+            
+            setNotification({ 
+                type: 'error', 
+                title: 'Login Gagal', 
+                message: pesanDariBackend || error.message || "Kredensial salah." 
+            }); 
+        }
     };
 
     // ================================
