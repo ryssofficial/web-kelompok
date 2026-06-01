@@ -33,6 +33,7 @@ export default function App() {
                 <Route path="/:role/presensi" element={<AbsensiFiturWrapper />} />
                 <Route path="/:role/data-presensi" element={<AbsensiFiturWrapper />} />
                 <Route path="/:role/tugas-saya" element={<NilaiTugasFitur />} />
+                <Route path="/:role/nilai-tugas" element={<NilaiTugasFitur />} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
