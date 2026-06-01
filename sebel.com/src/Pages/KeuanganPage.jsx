@@ -167,7 +167,7 @@ const SectionKas = ({ idKas, idGuru, isGuru }) => {
                 KasFitur.getRiwayatPemasukkan(idKas),
                 KasFitur.getRiwayatPengeluaran(idKas),
             ]);
-            setSaldo(kasData?.saldo_kas ?? 0);
+            setSaldo(kasData?.saldoKas ?? 0);
             setPemasukkan(Array.isArray(masuk) ? masuk : []);
             setPengeluaran(Array.isArray(keluar) ? keluar : []);
         } catch (err) {
@@ -224,13 +224,13 @@ const SectionKas = ({ idKas, idGuru, isGuru }) => {
     };
 
     const kolomMasuk = [
-        { key: "tanggal_masuk", label: "Tanggal", format: formatTanggal },
-        { key: "jumlah_masuk", label: "Jumlah", format: formatRupiah },
+        { key: "tanggalMasuk", label: "Tanggal", format: formatTanggal },
+        { key: "jumlahMasuk", label: "Jumlah", format: formatRupiah },
         { key: "keterangan", label: "Keterangan" },
     ];
     const kolomKeluar = [
-        { key: "tanggal_keluar", label: "Tanggal", format: formatTanggal },
-        { key: "jumlah_keluar", label: "Jumlah", format: formatRupiah },
+        { key: "tanggalKeluar", label: "Tanggal", format: formatTanggal },
+        { key: "jumlahKeluar", label: "Jumlah", format: formatRupiah },
         { key: "keterangan", label: "Keterangan" },
     ];
 
@@ -242,10 +242,10 @@ const SectionKas = ({ idKas, idGuru, isGuru }) => {
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
                 <SaldoCard label="Saldo Kas Kelas" nominal={saldo} warna="#f0fdf4" />
                 <SaldoCard label="Total Pemasukkan"
-                    nominal={pemasukkan.reduce((a, b) => a + Number(b.jumlah_masuk || 0), 0)}
+                    nominal={pemasukkan.reduce((a, b) => a + Number(b.jumlahMasuk || 0), 0)}
                     warna="#eff6ff" />
                 <SaldoCard label="Total Pengeluaran"
-                    nominal={pengeluaran.reduce((a, b) => a + Number(b.jumlah_keluar || 0), 0)}
+                    nominal={pengeluaran.reduce((a, b) => a + Number(b.jumlahKeluar || 0), 0)}
                     warna="#fff7ed" />
             </div>
 
@@ -326,21 +326,21 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
 
     const handlePilihSiswa = (tabungan) => {
         setSelected(tabungan);
-        fetchRiwayat(tabungan.id_tabungan);
+        fetchRiwayat(tabungan.idTabungan);
     };
 
     const handleSetor = async ({ jumlah, keterangan }) => {
         setLoading(true);
         try {
             await TabunganFitur.setorTabungan({
-                id_tabungan: selected.id_tabungan,
+                id_tabungan: selected.idTabungan,
                 id_guru: idGuru,
                 jumlah_masuk: jumlah,
                 keterangan,
             });
             await fetchList();
-            await fetchRiwayat(selected.id_tabungan);
-            setSelected((prev) => ({ ...prev, saldo_total: Number(prev.saldo_total) + jumlah }));
+            await fetchRiwayat(selected.idTabungan);
+            setSelected((prev) => ({ ...prev, saldo_total: Number(prev.saldoTotal) + jumlah }));
         } catch (err) {
             alert("Gagal setor: " + (err?.message || JSON.stringify(err)));
         } finally {
@@ -352,14 +352,14 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
         setLoading(true);
         try {
             await TabunganFitur.tarikTabungan({
-                id_tabungan: selected.id_tabungan,
+                id_tabungan: selected.idTabungan,
                 id_guru: idGuru,
                 jumlah_keluar: jumlah,
                 keterangan,
             });
             await fetchList();
-            await fetchRiwayat(selected.id_tabungan);
-            setSelected((prev) => ({ ...prev, saldo_total: Number(prev.saldo_total) - jumlah }));
+            await fetchRiwayat(selected.idTabungan);
+            setSelected((prev) => ({ ...prev, saldo_total: Number(prev.saldoTotal) - jumlah }));
         } catch (err) {
             alert("Gagal tarik: " + (err?.message || JSON.stringify(err)));
         } finally {
@@ -372,7 +372,7 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
         try {
             await TabunganFitur.hapusSetor(id);
             await fetchList();
-            await fetchRiwayat(selected.id_tabungan);
+            await fetchRiwayat(selected.idTabungan);
         } catch (err) {
             alert("Gagal hapus: " + (err?.message || JSON.stringify(err)));
         }
@@ -383,20 +383,20 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
         try {
             await TabunganFitur.hapusTarik(id);
             await fetchList();
-            await fetchRiwayat(selected.id_tabungan);
+            await fetchRiwayat(selected.idTabungan);
         } catch (err) {
             alert("Gagal hapus: " + (err?.message || JSON.stringify(err)));
         }
     };
 
     const kolomSetor = [
-        { key: "tanggal_masuk", label: "Tanggal", format: formatTanggal },
-        { key: "jumlah_masuk", label: "Jumlah Setor", format: formatRupiah },
+        { key: "tanggalMasuk", label: "Tanggal", format: formatTanggal },
+        { key: "jumlahMasuk", label: "Jumlah Setor", format: formatRupiah },
         { key: "keterangan", label: "Keterangan" },
     ];
     const kolomTarik = [
-        { key: "tanggal_keluar", label: "Tanggal", format: formatTanggal },
-        { key: "jumlah_keluar", label: "Jumlah Tarik", format: formatRupiah },
+        { key: "tanggalKeluar", label: "Tanggal", format: formatTanggal },
+        { key: "jumlahKeluar", label: "Jumlah Tarik", format: formatRupiah },
         { key: "keterangan", label: "Keterangan" },
     ];
 
@@ -419,20 +419,20 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
                 ) : (
                     listTabungan.map((t) => (
                         <div
-                            key={t.id_tabungan}
+                            key={t.idTabungan}
                             onClick={() => handlePilihSiswa(t)}
                             style={{
                                 padding: "12px 16px", cursor: "pointer",
                                 borderBottom: "1px solid #e2e8f0",
-                                background: selected?.id_tabungan === t.id_tabungan ? "#dbeafe" : "#fff",
+                                background: selected?.idTabungan === t.idTabungan ? "#dbeafe" : "#fff",
                                 transition: "background 0.15s"
                             }}
                         >
                             <p style={{ margin: 0, fontWeight: 600, fontSize: 13, color: "#1e293b" }}>
-                                {t.nama_siswa || `Siswa #${t.id_anggota}`}
+                                {t.namaSiswa || `Siswa #${t.idAnggota}`}
                             </p>
                             <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>
-                                {formatRupiah(t.saldo_total)}
+                                {formatRupiah(t.saldoTotal)}
                             </p>
                         </div>
                     ))
@@ -453,8 +453,8 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
                 ) : (
                     <>
                         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
-                            <SaldoCard label={`Saldo — ${selected.nama_siswa || "Siswa"}`}
-                                nominal={selected.saldo_total} warna="#eff6ff" />
+                            <SaldoCard label={`Saldo — ${selected.namaSiswa || "Siswa"}`}
+                                nominal={selected.saldoTotal} warna="#eff6ff" />
                         </div>
 
                         {isGuru && (
@@ -473,7 +473,7 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
                                         📥 Riwayat Setor
                                     </h4>
                                     <TabelRiwayat
-                                        data={riwayatSetor.map((d) => ({ ...d, id: d.id_pemasukkan }))}
+                                        data={riwayatSetor.map((d) => ({ ...d, id: d.idPemasukkan }))}
                                         kolom={kolomSetor}
                                         onHapus={handleHapusSetor}
                                         isGuru={isGuru}
@@ -484,7 +484,7 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
                                         📤 Riwayat Tarik
                                     </h4>
                                     <TabelRiwayat
-                                        data={riwayatTarik.map((d) => ({ ...d, id: d.id_pengeluaran }))}
+                                        data={riwayatTarik.map((d) => ({ ...d, id: d.idPengeluaran }))}
                                         kolom={kolomTarik}
                                         onHapus={handleHapusTarik}
                                         isGuru={isGuru}
@@ -501,7 +501,8 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
-const KeuanganPage = ({ role }) => {
+const KeuanganPage = () => {
+    const { role } = useParams();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("kas");
 
@@ -513,7 +514,7 @@ const KeuanganPage = ({ role }) => {
     const [errorInit, setErrorInit] = useState(null);
 
     useEffect(() => {
-        if (role !== "Guru" && role !== "Siswa") {
+        if (role !== "guru" && role !== "siswa") {
             navigate("/", { replace: true });
             return;
         }
@@ -523,18 +524,18 @@ const KeuanganPage = ({ role }) => {
             try {
                 const profile = await AxiosConfig.get("/auth/profile");
 
-                const guru = profile?.id_guru ?? null;
-                const rombel = profile?.id_rombel ?? null;
-                const profileRole = profile?.role ?? "Siswa";
+                const guru = profile?.idGuru ?? null;
+                const rombel = profile?.idRombel ?? null;
+                const profileRole = profile?.role ?? "siswa";
 
                 setIdGuru(guru);
                 setIdRombel(rombel);
-                setIsGuru(profileRole === "Guru");
+                setIsGuru(profileRole === "guru");
 
                 if (rombel) {
                     try {
                         const kasData = await KasFitur.getKasByRombel(rombel);
-                        setIdKas(kasData?.id_kas ?? null);
+                        setIdKas(kasData?.idKas ?? null);
                     } catch {
                         setIdKas(null);
                     }
@@ -545,7 +546,7 @@ const KeuanganPage = ({ role }) => {
                 setIdGuru(1);
                 setIdRombel(1);
                 setIdKas(1);
-                setIsGuru(role === "Guru");
+                setIsGuru(role === "guru");
                 // ── akhir dummy ──────────────────────────────────────────
             } finally {
                 setLoadInit(false);
@@ -567,7 +568,7 @@ const KeuanganPage = ({ role }) => {
     });
 
     if (loadInit) return (
-        <DashboardLayout role={role || "Siswa"} activeMenu="Keuangan">
+        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
                 <p style={{ color: "#94a3b8", fontSize: 14 }}>⏳ Memuat halaman keuangan...</p>
             </div>
@@ -575,7 +576,7 @@ const KeuanganPage = ({ role }) => {
     );
 
     if (errorInit) return (
-        <DashboardLayout role={role || "Siswa"} activeMenu="Keuangan">
+        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
             <div style={{ padding: 24, color: "#dc2626", background: "#fef2f2", borderRadius: 12 }}>
                 ⚠️ {errorInit}
             </div>
@@ -583,7 +584,7 @@ const KeuanganPage = ({ role }) => {
     );
 
     return (
-        <DashboardLayout role={role || "Siswa"} activeMenu="Keuangan">
+        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
 
             {/* Tab Navigation */}
             <div style={{

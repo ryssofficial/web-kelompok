@@ -3,6 +3,8 @@ import express from "express";
 import Login from "./Login.js"
 import NotifikasiRoute from "./NotifikasiRoute.js";
 import DashboardRoute from "./Aris/DashboardRoute.js";
+import KasRoutes from "./Eriska/KasRoutes.js";
+import TabunganRoutes from "./Eriska/TabunganRoutes.js";
 
 /**
  * CONTOH: TINGGAL IMPORT AJA
@@ -23,5 +25,7 @@ const BaseRouter = express.Router();
 BaseRouter.use("/auth", Login);
 BaseRouter.use("/notifikasi", NotifikasiRoute);
 BaseRouter.use("/dashboard", DashboardRoute);
+BaseRouter.use("/kas", KasRoutes);
+BaseRouter.use("/tabungan", TabunganRoutes);
 
 export default BaseRouter;
