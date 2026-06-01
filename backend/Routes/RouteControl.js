@@ -2,6 +2,7 @@
 import express from "express";
 import Login from "./Login.js"
 import NotifikasiRoute from "./NotifikasiRoute.js";
+import DashboardRoute from "./Aris/DashboardRoute.js";
 
 /**
  * CONTOH: TINGGAL IMPORT AJA
@@ -21,5 +22,6 @@ const BaseRouter = express.Router();
 
 BaseRouter.use("/auth", Login);
 BaseRouter.use("/notifikasi", NotifikasiRoute);
+BaseRouter.use("/dashboard", DashboardRoute);
 
 export default BaseRouter;
