@@ -1,6 +1,6 @@
 // src/Databases/QueryBuilder.js
 import pool from '../db.js'; // Asumsikan Anda memiliki koneksi pool dari 'pg'
-import { CaseConverter } from '../utils/CaseConverter.js';
+import { CaseConverter } from '../Utils/CaseConverter.js'; // Utilitas untuk konversi case
 
 export default class QueryBuilder {
     /**
