@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { DashboardLayout } from "../Components//DashboardLayout";
+import { DashboardLayout } from "../Components/DashboardLayout";
 import { StyledButton, StyledCard, HappyHuesTheme, PageContainer } from "../Components/BaseComponents";
 import { DeleteButton } from "../Components/Button/DeleteButton";
 import { NotifikasiResponse } from "../API/ArisFitur/NotifikasiResponse";
@@ -84,10 +84,10 @@ const NotifItem = ({ notif, onRead, onDelete }) => {
                         color={HappyHuesTheme.tertiary}
                         padding="6px 12px"
                         fontSize="11px"
-                        onClick={() => onRead(notif.idNotif || notif.id)}
+                        onClick={() => onRead(notif.idNotif)}
                     />
                 )}
-                <DeleteButton id={notif.idNotif || notif.id} onDelete={onDelete} />
+                <DeleteButton id={notif.idNotif} onDelete={onDelete} />
             </div>
         </div>
     );
@@ -128,7 +128,7 @@ const LoadingSkeleton = () => (
 
 const NotifikasiPage = ({ role = "Guru" }) => {
     const [notifikasi, setNotifikasi] = useState([]);
-    const [filter, setFilter] = useState("semua"); // "semua" | "belum" | "sudah"
+    const [filter, setFilter] = useState("semua");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
@@ -139,10 +139,10 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         try {
             const data = await NotifikasiResponse.getAll();
             const finalData = Array.isArray(data) ? data : data?.data ?? [];
-        
-            // 🌟 COPY & TUNJUKKAN HASIL LOG INI DARI CONSOLE BROWSER KELAK:
+            
+            // Log ini berguna untuk memantau data asli dari backend di console browser
             console.log("ISI DATA NOTIFIKASI SAYA:", finalData);
-            setNotifikasi(Array.isArray(data) ? data : data?.data ?? []);
+            setNotifikasi(finalData);
         } catch (err) {
             setError("Gagal memuat notifikasi. Silakan coba lagi.");
             console.error(err);
@@ -159,7 +159,7 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         try {
             await NotifikasiResponse.markAsRead(id);
             setNotifikasi((prev) =>
-                prev.map((n) => ((n.idNotif || n.id) === id ? { ...n, isRead: true } : n))
+                prev.map((n) => (n.idNotif === id ? { ...n, isRead: true } : n))
             );
         } catch (err) {
             alert("Gagal menandai notifikasi. Silakan coba lagi.");
@@ -185,8 +185,7 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         if (!window.confirm("Hapus notifikasi ini?")) return;
         try {
             await NotifikasiResponse.delete(id);
-            // 🌟 PERBAIKAN: Gunakan (n.id_notif || n.id)
-            setNotifikasi((prev) => prev.filter((n) => (n.idNotif || n.id) !== id));
+            setNotifikasi((prev) => prev.filter((n) => n.idNotif !== id));
         } catch (err) {
             alert("Gagal menghapus notifikasi. Silakan coba lagi.");
             console.error(err);
@@ -247,14 +246,14 @@ const NotifikasiPage = ({ role = "Guru" }) => {
                                 label={actionLoading ? "Memproses..." : "✓ Tandai Semua Dibaca"}
                                 type="primary"
                                 onClick={handleMarkAllAsRead}
-                                disabled={unreadCount === 0 || actionLoading} // 🌟 Tambahkan ini jika didukung komponennya
+                                disabled={unreadCount === 0 || actionLoading}
                                 style={{ opacity: unreadCount === 0 || actionLoading ? 0.5 : 1 }}
                             />
                             <StyledButton
                                 label="🔄 Refresh"
                                 type="secondary"
                                 onClick={fetchNotifikasi}
-                                disabled={unreadCount === 0 || actionLoading}
+                                disabled={loading}
                                 style={{ opacity: loading ? 0.5 : 1 }}
                             />
                         </div>
@@ -282,11 +281,9 @@ const NotifikasiPage = ({ role = "Guru" }) => {
                     ) : filtered.length === 0 ? (
                         <EmptyState />
                     ) : (
-                        // 🌟 Tambahkan 'index' di sini
                         filtered.map((notif, index) => (
                             <NotifItem
-                                // 🌟 Kombinasikan ID dengan index agar dijamin 100% unik dan tidak undefined
-                                key={`${notif.id_notif || notif.id || "notif"}-${index}`}
+                                key={`${notif.idNotif || "notif"}-${index}`}
                                 notif={notif}
                                 onRead={handleMarkAsRead}
                                 onDelete={handleDelete}
