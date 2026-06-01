@@ -7,7 +7,7 @@ class SiswaModel extends BaseModel {
             'public.siswa', 
             'id_siswa', 
             // 🔒 HANYA kolom ini yang boleh di-insert/update dari Frontend
-            ['nis', 'nama_siswa', 'tahun_masuk', 'pass'] 
+            ['nis_siswa', 'nama_siswa', 'tahun_masuk', 'pass'] 
         );
     }
 }

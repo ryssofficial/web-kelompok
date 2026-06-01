@@ -13,51 +13,50 @@ class SiswaAuthController extends BaseController {
     login = async (req, res) => {
         console.log(`[System] Data masuk ke server => NIS = ${req.body.identifier} Password = ${req.body.password}`);
         await this.execute(res, async () => {
-            // 🌟 SINKRONISASI: Ambil 'identifier' dari req.body sesuai kiriman frontend Anda
             const { identifier, password } = req.body;
 
-            // Validasi awal: Memastikan input tidak dikirim kosong
             if (!identifier || !password) {
                 return sendError(res, 400, "NIS dan password wajib diisi.");
             }
 
-            // Cari data siswa di database berdasarkan NIS (menggunakan nilai dari variabel identifier)
+            const nisSiswaAngka = parseInt(identifier, 10);
             const siswa = await this.model.query()
-                .where('nis', '=', identifier) // 🌟 Tetap kueri ke kolom 'nis_siswa'
+                .where('nisSiswa', '=', nisSiswaAngka)
                 .first();
 
-            // Jika data siswa tidak ditemukan
+            console.log('Masuk ke identifikasi nis siswa');
+
             if (!siswa) {
                 return sendError(res, 401, "Kredensial salah, NIS tidak terdaftar.");
             }
 
-            // Inisialisasi komparasi password
-            const crypt = new HashCrypt(siswa.passwordSiswa);
+            console.log('Data siswa ditemukan, memproses verifikasi password...');
+
+            // 🌟 PERBAIKAN UTAMA: Ganti siswa.password_siswa menjadi siswa.passwordSiswa (camelCase)
+            const passwordHash = siswa.passwordSiswa || siswa.password_siswa; 
+            console.log(passwordHash);
+            const crypt = new HashCrypt(passwordHash);
             const isPasswordValid = await crypt.comparing(password);
 
             if (!isPasswordValid) {
                 return sendError(res, 401, "Kredensial salah, password tidak cocok.");
             }
+            
+            console.log('Masuk ke pembuatan token...');
 
-            // Buat payload token JWT
+            // 🌟 SINKRONISASI PAYLOAD: Gunakan camelCase agar data token tidak bernilai undefined
             const jwtPayload = {
-                id: siswa.idSiswa, 
-                nis: siswa.nisSiswa,
-                nama: siswa.namaSiswa,
+                id: siswa.idSiswa || siswa.id_siswa, 
+                nis: siswa.nisSiswa || siswa.nis_siswa,
+                nama: siswa.namaSiswa || siswa.nama_siswa,
                 role: "siswa"
             };
 
             const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: "8h" });
 
-            // Kirim respon balik ke frontend
             return sendResponse(res, 200, "Login Berhasil, Sesi Anda telah aktif.", {
                 token: token,
-                user: {
-                    id: siswa.idSiswa,
-                    nis: siswa.nisSiswa,
-                    nama: siswa.namaSiswa,
-                    role: "siswa"
-                }
+                user: jwtPayload
             });
         });
     }
