@@ -15,6 +15,11 @@ const expressRouter = express.Router();
 const registerLoginRoute = BaseRoutes.generate("post", "/login/siswa", SiswaAuthController.login);
 registerLoginRoute(expressRouter);
 
+
+// POST /auth/login/guru — public (FIX: route ini sebelumnya tidak ada!)
+const registerGuruLogin = BaseRoutes.generate("post", "/login/guru", GuruAuthController.login);
+registerGuruLogin(expressRouter);
+
 const registerGoogleLogin = BaseRoutes.generate("post", "/login/google", GuruAuthController.googleLogin);
 registerGoogleLogin(expressRouter);
 
