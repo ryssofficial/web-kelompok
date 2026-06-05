@@ -11,55 +11,63 @@ class SiswaAuthController extends BaseController {
     }
 
     login = async (req, res) => {
-        console.log(`[System] Data masuk ke server => NIS = ${req.body.identifier} Password = ${req.body.password}`);
-        await this.execute(res, async () => {
-            const { identifier, password } = req.body;
+    // Log data yang masuk (Hapus password di produksi, ini hanya untuk debug)
+    console.log(`[System] Login Attempt => NIS: ${req.body.identifier}`);
+    
+    await this.execute(res, async () => {
+        const { identifier, password } = req.body;
 
-            if (!identifier || !password) {
-                return sendError(res, 400, "NIS dan password wajib diisi.");
-            }
+        if (!identifier || !password) { return sendError(res, 400, "NIS dan password wajib diisi."); }
 
-            const nisSiswaAngka = parseInt(identifier, 10);
-            const siswa = await this.model.query()
-                .where('nis_siswa', '=', nisSiswaAngka)
-                .first();
+        // Cari siswa (Gunakan identifier langsung tanpa parseInt jika NIS di DB adalah Varchar)
+        const siswa = await this.model.query()
+            .where('nis_siswa', '=', identifier) 
+            .first();
 
-            console.log('Masuk ke identifikasi nis siswa');
+        if (!siswa) {
+            console.log(`[System] NIS ${identifier} tidak ditemukan.`);
+            return sendError(res, 401, "Kredensial salah, NIS tidak terdaftar.");
+        }
 
-            if (!siswa) {
-                return sendError(res, 401, "Kredensial salah, NIS tidak terdaftar.");
-            }
+        console.log('[System] Data siswa ditemukan, memverifikasi password...');
 
-            console.log('Data siswa ditemukan, memproses verifikasi password...');
+        // Pastikan mengambil hash dengan benar
+        const passwordHash = siswa.passwordSiswa || siswa.password_siswa; 
+        
+        if (!passwordHash) {
+            console.log('[System] Error: Kolom password di database kosong!');
+            return sendError(res, 401, "Akun belum memiliki password.");
+        }
 
-            // 🌟 PERBAIKAN UTAMA: Ganti siswa.password_siswa menjadi siswa.passwordSiswa (camelCase)
-            const passwordHash = siswa.passwordSiswa || siswa.password_siswa; 
-            console.log(passwordHash);
-            const crypt = new HashCrypt(passwordHash);
-            const isPasswordValid = await crypt.comparing(password);
+        // DEBUG: Cek isi hash yang diambil
+        console.log(`[Debug] Hash dari DB: ${passwordHash}`);
+        console.log(`Hasil dari input yang di hash ${password}`);
+        const crypt = new HashCrypt(passwordHash);
+        const isPasswordValid = await crypt.comparing(password);
 
-            if (!isPasswordValid) {
-                return sendError(res, 401, "Kredensial salah, password tidak cocok.");
-            }
-            
-            console.log('Masuk ke pembuatan token...');
+        if (!isPasswordValid) {
+            console.log('[System] Verifikasi Gagal: Password tidak cocok dengan Hash.');
+            return sendError(res, 401, "Kredensial salah, password tidak cocok.");
+        }
+        
+        console.log('[System] Verifikasi Berhasil! Membuat token...');
 
-            // 🌟 SINKRONISASI PAYLOAD: Gunakan camelCase agar data token tidak bernilai undefined
-            const jwtPayload = {
-                id: siswa.idSiswa || siswa.id_siswa, 
-                nis: siswa.nisSiswa || siswa.nis_siswa,
-                nama: siswa.namaSiswa || siswa.nama_siswa,
-                role: "siswa"
-            };
+        const jwtPayload = {
+            id: siswa.idSiswa || siswa.id_siswa, 
+            nis: siswa.nisSiswa || siswa.nis_siswa,
+            nama: siswa.namaSiswa || siswa.nama_siswa,
+            role: "siswa"
+        };
 
-            const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: "8h" });
+        const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: "8h" });
 
-            return sendResponse(res, 200, "Login Berhasil, Sesi Anda telah aktif.", {
-                token: token,
-                user: jwtPayload
-            });
+        return sendResponse(res, 200, "Login Berhasil.", {
+            token: token,
+            user: jwtPayload
         });
-    }
+    });
+}
+
 }
 
 export default new SiswaAuthController();

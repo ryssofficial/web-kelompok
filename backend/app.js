@@ -12,7 +12,7 @@ import { sendNotFound } from "./Utils/Response.js";
 import RouteControl from "./Routes/RouteControl.js";
 import bcrypt from 'bcrypt';
 
-const passwordSaja = 'Rifkisubhan123';
+const passwordSaja = 'Arisulaa01112005';
 const saltRounds = 10; // Standar keamanan bcrypt
 
 bcrypt.hash(passwordSaja, saltRounds, function(err, hash) {

@@ -130,9 +130,6 @@ export default function DashboardPage() {
                 </style>
                 
                 <div style={{ marginBottom: '20px' }}>
-                    <h1 style={{ color: HappyHuesTheme.stroke, marginBottom: '5px' }}>
-                        Halo, {isGuru ? 'Bapak/Ibu Guru' : 'Siswa'}! 👋
-                    </h1>
                     <p style={{ color: HappyHuesTheme.paragraph, marginTop: 0, fontWeight: 'bold' }}>
                         {lastVisit}
                     </p>

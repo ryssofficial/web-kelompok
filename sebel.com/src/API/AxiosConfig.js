@@ -1,8 +1,10 @@
+// frontend/API/AxiosConfig.js
 import axios from 'axios';
 import { API_URL } from "./API_URL";
 import { CookieManager } from "../Services/CookiesFactory/BaseCookies";
 
-const manager = new CookieManager(); // 🌟 Buat instance manager
+const manager = new CookieManager();
+
 export const instance = axios.create({
     baseURL: API_URL,
     headers: {
@@ -12,22 +14,22 @@ export const instance = axios.create({
 
 instance.interceptors.request.use(
     (config) => {
-        const token = manager.get('token'); 
-        
+        const token = manager.get('token');
         if (token) { config.headers.Authorization = `Bearer ${token}`; }
-        
-            return config;
+        return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
 instance.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) { window.location.href = '/login'; }
-        
+        if (error.response?.status === 401) {
+            // Hanya redirect jika belum di halaman login
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
+        }
         return Promise.reject(error);
     }
 );
@@ -39,9 +41,11 @@ export const AxiosConfig = {
             const response = await instance.post(targetUrl, param);
             return response.data;
         } catch (error) {
-            throw error.response?.data || error.message;
+            // FIX: lempar error object axios apa adanya supaya error.response.data.message
+            // bisa diakses di LoginPage dan controller error lainnya
+            throw error;
         }
-    }, 
+    },
 
     get: async (url, param) => {
         try {
@@ -49,12 +53,11 @@ export const AxiosConfig = {
             const targetUrl = isId ? `${url}/${param}` : url;
             const config = !isId ? { params: param } : {};
             const response = await instance.get(targetUrl, config);
-
             return response.data;
         } catch (error) {
-            throw error.response?.data || error.message;
+            throw error;
         }
-    }, 
+    },
 
     put: async (url, param, id) => {
         try {
@@ -62,9 +65,9 @@ export const AxiosConfig = {
             const response = await instance.put(targetUrl, param);
             return response.data;
         } catch (error) {
-            throw error.response?.data || error.message;
+            throw error;
         }
-    }, 
+    },
 
     delete: async (url, id) => {
         try {
@@ -72,8 +75,7 @@ export const AxiosConfig = {
             const response = await instance.delete(targetUrl);
             return response.data;
         } catch (error) {
-            throw error.response?.data || error.message;
+            throw error;
         }
     }
 };
-

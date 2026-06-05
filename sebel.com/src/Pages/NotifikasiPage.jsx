@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { DashboardLayout } from "../Components//DashboardLayout";
+import { DashboardLayout } from "../Components/DashboardLayout";
 import { StyledButton, StyledCard, HappyHuesTheme, PageContainer } from "../Components/BaseComponents";
 import { DeleteButton } from "../Components/Button/DeleteButton";
 import { NotifikasiResponse } from "../API/ArisFitur/NotifikasiResponse";
@@ -16,7 +16,7 @@ const formatTanggal = (isoString) => {
 };
 
 const NotifItem = ({ notif, onRead, onDelete }) => {
-    const isUnread = !notif.is_read;
+    const isUnread = !notif.isRead;
     const containerStyle = {
         display: "flex",
         alignItems: "flex-start",
@@ -64,7 +64,7 @@ const NotifItem = ({ notif, onRead, onDelete }) => {
                         fontWeight: "bold",
                         whiteSpace: "nowrap",
                     }}>
-                        🕐 {formatTanggal(notif.tanggal_notif)}
+                        🕐 {formatTanggal(notif.tanggalNotif)}
                     </span>
                 </div>
                 <p style={{
@@ -84,10 +84,10 @@ const NotifItem = ({ notif, onRead, onDelete }) => {
                         color={HappyHuesTheme.tertiary}
                         padding="6px 12px"
                         fontSize="11px"
-                        onClick={() => onRead(notif.id_notif)}
+                        onClick={() => onRead(notif.idNotif)}
                     />
                 )}
-                <DeleteButton id={notif.id_notif} onDelete={onDelete} />
+                <DeleteButton id={notif.idNotif} onDelete={onDelete} />
             </div>
         </div>
     );
@@ -128,7 +128,7 @@ const LoadingSkeleton = () => (
 
 const NotifikasiPage = ({ role = "Guru" }) => {
     const [notifikasi, setNotifikasi] = useState([]);
-    const [filter, setFilter] = useState("semua"); // "semua" | "belum" | "sudah"
+    const [filter, setFilter] = useState("semua");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
@@ -138,7 +138,11 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         setError(null);
         try {
             const data = await NotifikasiResponse.getAll();
-            setNotifikasi(Array.isArray(data) ? data : data?.data ?? []);
+            const finalData = Array.isArray(data) ? data : data?.data ?? [];
+            
+            // Log ini berguna untuk memantau data asli dari backend di console browser
+            console.log("ISI DATA NOTIFIKASI SAYA:", finalData);
+            setNotifikasi(finalData);
         } catch (err) {
             setError("Gagal memuat notifikasi. Silakan coba lagi.");
             console.error(err);
@@ -155,7 +159,7 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         try {
             await NotifikasiResponse.markAsRead(id);
             setNotifikasi((prev) =>
-                prev.map((n) => (n.id_notif === id ? { ...n, is_read: true } : n))
+                prev.map((n) => (n.idNotif === id ? { ...n, isRead: true } : n))
             );
         } catch (err) {
             alert("Gagal menandai notifikasi. Silakan coba lagi.");
@@ -164,11 +168,11 @@ const NotifikasiPage = ({ role = "Guru" }) => {
     };
 
     const handleMarkAllAsRead = async () => {
-        if (unreadCount === 0) return;
+        if (unreadCount === 0 || actionLoading) return;
         setActionLoading(true);
         try {
             await NotifikasiResponse.markAllAsRead();
-            setNotifikasi((prev) => prev.map((n) => ({ ...n, is_read: true })));
+            setNotifikasi((prev) => prev.map((n) => ({ ...n, isRead: true })));
         } catch (err) {
             alert("Gagal menandai semua notifikasi. Silakan coba lagi.");
             console.error(err);
@@ -181,18 +185,18 @@ const NotifikasiPage = ({ role = "Guru" }) => {
         if (!window.confirm("Hapus notifikasi ini?")) return;
         try {
             await NotifikasiResponse.delete(id);
-            setNotifikasi((prev) => prev.filter((n) => n.id_notif !== id));
+            setNotifikasi((prev) => prev.filter((n) => n.idNotif !== id));
         } catch (err) {
             alert("Gagal menghapus notifikasi. Silakan coba lagi.");
             console.error(err);
         }
     };
 
-    const unreadCount = notifikasi.filter((n) => !n.is_read).length;
+    const unreadCount = notifikasi.filter((n) => !n.isRead).length;
 
     const filtered = notifikasi.filter((n) => {
-        if (filter === "belum") return !n.is_read;
-        if (filter === "sudah") return n.is_read;
+        if (filter === "belum") return !n.isRead;
+        if (filter === "sudah") return n.isRead;
         return true;
     });
 
@@ -242,12 +246,14 @@ const NotifikasiPage = ({ role = "Guru" }) => {
                                 label={actionLoading ? "Memproses..." : "✓ Tandai Semua Dibaca"}
                                 type="primary"
                                 onClick={handleMarkAllAsRead}
+                                disabled={unreadCount === 0 || actionLoading}
                                 style={{ opacity: unreadCount === 0 || actionLoading ? 0.5 : 1 }}
                             />
                             <StyledButton
                                 label="🔄 Refresh"
                                 type="secondary"
                                 onClick={fetchNotifikasi}
+                                disabled={loading}
                                 style={{ opacity: loading ? 0.5 : 1 }}
                             />
                         </div>
@@ -275,9 +281,9 @@ const NotifikasiPage = ({ role = "Guru" }) => {
                     ) : filtered.length === 0 ? (
                         <EmptyState />
                     ) : (
-                        filtered.map((notif) => (
+                        filtered.map((notif, index) => (
                             <NotifItem
-                                key={notif.id_notif}
+                                key={`${notif.idNotif || "notif"}-${index}`}
                                 notif={notif}
                                 onRead={handleMarkAsRead}
                                 onDelete={handleDelete}

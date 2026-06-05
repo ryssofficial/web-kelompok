@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt';
 
-export default class HashCrypt{
+export default class HashCrypt {
     #hash;
     #salt = 10;
-    #isHashed = false
+    #isHashed = false;
 
     /**
      * @param {string} [initialHash] - Opsional, diisi jika ingin melakukan komparasi/login
@@ -13,7 +13,7 @@ export default class HashCrypt{
         if (initialHash) { this.#isHashed = true; }
     }
 
-/**
+    /**
      * Meng-hash password mentah baru (Dipakai saat Registrasi)
      * @param {string} rawPassword 
      */
@@ -24,19 +24,20 @@ export default class HashCrypt{
         return true;
     }
 
-    #getHash(){
+    #getHash() {
         return this.#hash;
     }
 
-/**
-* Membandingkan password mentah dari form dengan hash dari database
-* @param {string} rawPassword - Password asli yang diketik user di frontend
-* @param {string} hashedPassword - Password yang sudah di-hash dari database
-* @returns {Promise<boolean>} True jika cocok, False jika salah
-*/
-    async comparing(rawPassword){
+    /**
+     * Membandingkan password mentah dari form dengan hash dari database
+     * @param {string} rawPassword - Password asli dari form login frontend
+     * @returns {Promise<boolean>} True jika cocok, False jika salah
+     */
+    async comparing(rawPassword) {
         try {
-            // Bcrypt otomatis membaca salt internal di dalam hash untuk mencocokkannya
+            // ✅ BENAR: langsung masukkan rawPassword (mentah) ke argumen pertama.
+            // Bcrypt akan otomatis membedah salt internal dari this.#getHash() 
+            // lalu mencocokkannya di latar belakang.
             const isMatch = await bcrypt.compare(rawPassword, this.#getHash());
             return isMatch;
         } catch (error) {

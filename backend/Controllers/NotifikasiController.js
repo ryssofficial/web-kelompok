@@ -14,11 +14,22 @@ class NotifikasiController extends BaseController {
      */
     getAll = async (req, res) => {
         await this.execute(res, async () => {
-            // id didapatkan dari token JWT yang sudah di-decode oleh middleware authenticateToken
-            const userId = req.user.id; 
+            const userId = req.user.id; // Ini berisi google_id panjang
+            const userRole = req.user.role?.toLowerCase(); 
+            const targetColumn = userRole === 'guru' ? 'id_guru' : 'id_siswa';
+
+            // 🌟 PERBAIKAN: Konversi google_id mjd ID Int asli dari database
+            let internalId = userId;
+            if (userRole === 'guru') {
+                const guruCheck = await pool.query("SELECT id_guru FROM public.guru WHERE google_id = $1", [userId]);
+                if (guruCheck.rows.length > 0) internalId = guruCheck.rows[0].id_guru;
+            } else {
+                const siswaCheck = await pool.query("SELECT id_siswa FROM public.siswa WHERE google_id = $1", [userId]);
+                if (siswaCheck.rows.length > 0) internalId = siswaCheck.rows[0].id_siswa;
+            }
 
             const data = await this.model.query()
-                .where('id_user', '=', userId)
+                .where(targetColumn, '=', internalId) // Menggunakan ID angka biasa (cth: 1)
                 .get();
 
             return sendResponse(res, 200, "Semua notifikasi berhasil diambil", data);
@@ -32,11 +43,23 @@ class NotifikasiController extends BaseController {
         await this.execute(res, async () => {
             const { id } = req.params; // Mengambil id_notif dari URL params
             const userId = req.user.id;
+            const userRole = req.user.role?.toLowerCase(); 
+            const targetColumn = userRole === 'guru' ? 'id_guru' : 'id_siswa';
+
+            // 🌟 PERBAIKAN: Konversi google_id mjd ID Int asli dari database
+            let internalId = userId;
+            if (userRole === 'guru') {
+                const guruCheck = await pool.query("SELECT id_guru FROM public.guru WHERE google_id = $1", [userId]);
+                if (guruCheck.rows.length > 0) internalId = guruCheck.rows[0].id_guru;
+            } else {
+                const siswaCheck = await pool.query("SELECT id_siswa FROM public.siswa WHERE google_id = $1", [userId]);
+                if (siswaCheck.rows.length > 0) internalId = siswaCheck.rows[0].id_siswa;
+            }
 
             // Validasi: Pastikan notifikasi ini ada DAN memang milik user tersebut
             const notif = await this.model.query()
                 .where('id_notif', '=', id)
-                .where('id_user', '=', userId)
+                .where(targetColumn, '=', internalId)
                 .first();
 
             if (!notif) {
@@ -59,11 +82,23 @@ class NotifikasiController extends BaseController {
     markAllAsRead = async (req, res) => {
         await this.execute(res, async () => {
             const userId = req.user.id;
+            const userRole = req.user.role?.toLowerCase(); 
+            const targetColumn = userRole === 'guru' ? 'id_guru' : 'id_siswa';
 
-            // Mengubah semua status 'is_read' menjadi true berdasarkan id_user
+            // 🌟 PERBAIKAN: Konversi google_id mjd ID Int asli dari database
+            let internalId = userId;
+            if (userRole === 'guru') {
+                const guruCheck = await pool.query("SELECT id_guru FROM public.guru WHERE google_id = $1", [userId]);
+                if (guruCheck.rows.length > 0) internalId = guruCheck.rows[0].id_guru;
+            } else {
+                const siswaCheck = await pool.query("SELECT id_siswa FROM public.siswa WHERE google_id = $1", [userId]);
+                if (siswaCheck.rows.length > 0) internalId = siswaCheck.rows[0].id_siswa;
+            }
+
+            // Mengubah semua status 'is_read' menjadi true berdasarkan id asli
             await pool.query(
-                `UPDATE ${this.model.tableName} SET is_read = true WHERE id_user = $1`, 
-                [userId]
+                `UPDATE ${this.model.tableName} SET is_read = true WHERE ${targetColumn} = $1`, 
+                [internalId]
             );
 
             return sendResponse(res, 200, "Semua notifikasi berhasil ditandai sebagai sudah dibaca");
@@ -77,11 +112,23 @@ class NotifikasiController extends BaseController {
         await this.execute(res, async () => {
             const { id } = req.params;
             const userId = req.user.id;
+            const userRole = req.user.role?.toLowerCase(); 
+            const targetColumn = userRole === 'guru' ? 'id_guru' : 'id_siswa';
+
+            // 🌟 PERBAIKAN: Konversi google_id mjd ID Int asli dari database
+            let internalId = userId;
+            if (userRole === 'guru') {
+                const guruCheck = await pool.query("SELECT id_guru FROM public.guru WHERE google_id = $1", [userId]);
+                if (guruCheck.rows.length > 0) internalId = guruCheck.rows[0].id_guru;
+            } else {
+                const siswaCheck = await pool.query("SELECT id_siswa FROM public.siswa WHERE google_id = $1", [userId]);
+                if (siswaCheck.rows.length > 0) internalId = siswaCheck.rows[0].id_siswa;
+            }
 
             // Validasi kepemilikan sebelum menghapus data demi keamanan
             const notif = await this.model.query()
                 .where('id_notif', '=', id)
-                .where('id_user', '=', userId)
+                .where(targetColumn, '=', internalId)
                 .first();
 
             if (!notif) {

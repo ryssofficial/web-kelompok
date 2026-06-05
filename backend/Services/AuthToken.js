@@ -11,6 +11,10 @@ import jwt from "jsonwebtoken";
 export const AuthToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
+
+    console.log('[AuthToken] Header:', authHeader ? 'ADA' : 'TIDAK ADA');
+    console.log('[AuthToken] Token:', token ? token.substring(0, 20) + '...' : 'NULL');
+
     if (!token) return sendError(res, 401, "Akses Ditolak, token kosong");
 
     try {
@@ -18,6 +22,7 @@ export const AuthToken = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (error) {
+        console.log('[AuthToken] Error verify:', error.message);
         return sendError(res, 401, "Sesi Berakhir (Token Expired)");
     }
 };
