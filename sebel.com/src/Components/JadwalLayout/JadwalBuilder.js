@@ -181,17 +181,16 @@ class JadwalManager {
                 .build();
 
         return [
-            build('Senin',  'Matematika',         'Pak Budi Santoso',   '07:00','08:30','R-101','X IPA 1'),
-            build('Senin',  'Bahasa Indonesia',   'Bu Sari Dewi',       '08:30','10:00','R-102','X IPA 1'),
-            build('Senin',  'Fisika',             'Pak Andi Prasetyo',  '10:15','11:45','R-103','X IPA 1'),
-            build('Selasa', 'Kimia',              'Bu Lina Marlina',    '07:00','08:30','R-201','X IPA 1'),
-            build('Selasa', 'Biologi',            'Pak Dodi Hermawan',  '08:30','10:00','R-202','X IPA 1'),
-            build('Rabu',   'Bahasa Inggris',     'Bu Wati Nurhayati',  '07:00','08:30','R-101','X IPA 1'),
-            build('Rabu',   'Sejarah',            'Pak Hendra Kusuma',  '08:30','10:00','R-104','X IPA 1'),
-            build('Kamis',  'Seni Budaya',        'Bu Rina Anggraini',  '07:00','08:30','R-105','X IPA 1'),
-            build('Kamis',  'Pendidikan Agama',   'Pak Imam Sholeh',    '08:30','10:00','R-106','X IPA 1'),
-            build('Jumat',  'PJOK',               'Pak Rizal Firmansyah','07:00','08:30','GOR',  'X IPA 1'),
-            build('Jumat',  'Prakarya',           'Bu Mega Sartika',    '08:30','10:00','R-107','X IPA 1'),
+            build('Senin',  'Matematika',         'Pak Budi Santoso',   '07:00','08:30','R-101','VII A'),
+            build('Senin',  'Bahasa Indonesia',   'Bu Sari Dewi',       '08:30','10:00','R-102','VII B'),
+            build('Senin',  'Fisika',             'Pak Andi Prasetyo',  '10:15','11:45','R-103','VII C'),
+            build('Selasa', 'Kimia',              'Bu Lina Marlina',    '07:00','08:30','R-201','VII A'),
+            build('Selasa', 'Biologi',            'Pak Dodi Hermawan',  '08:30','10:00','R-202','VII B'),
+            build('Rabu',   'Bahasa Inggris',     'Bu Wati Nurhayati',  '07:00','08:30','R-101','VII C'),
+            build('Rabu',   'Sejarah',            'Pak Hendra Kusuma',  '08:30','10:00','R-104','VII A'),
+            build('Kamis',  'Pendidikan Agama',   'Pak Imam Sholeh',    '08:30','10:00','R-106','VII A'),
+            build('Jumat',  'PJOK',               'Pak Rizal Firmansyah','07:00','08:30','GOR','VII A'),
+            build('Jumat',  'Prakarya',           'Bu Mega Sartika',    '08:30','10:00','R-107','VII A'),
         ];
     }
 }
