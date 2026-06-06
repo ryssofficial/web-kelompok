@@ -211,7 +211,7 @@ export default function LoginPage() {
                                     <div style={{ flex: 1, height: '2px', backgroundColor: HappyHuesTheme.stroke }}></div>
                                 </div>
 
-                                <GoogleButton onClick={() => handleGoogleLogin()} />
+                                <GoogleButton onClick={() => {handleGoogleLogin(); console.log('Klik tombol Login google'); }} />
                             </>
                         )}
                     </StyledCard>

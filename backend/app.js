@@ -44,7 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', RouteControl);
 app.use((req, res) => sendNotFound(res));
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`=============================================================`);
     console.log(`== 🚀 Backend SEBEL berjalan di: http://localhost:${PORT}     ==`);
     console.log(`== 🔓 JWT TOKEN SIAP DIGUNAKAN                             ==`);
