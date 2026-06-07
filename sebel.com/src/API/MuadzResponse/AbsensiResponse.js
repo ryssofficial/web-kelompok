@@ -1,56 +1,43 @@
+// src/services/AbsensiResponse.js
 import { AxiosConfig } from "../AxiosConfig";
 import { API_URL } from "../API_URL";
 
-const NOTIF_URL = API_URL;
-// ─────────────────────────────────────────────
-// API: AbsensiResponse
-// Base endpoint: /absensi
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// API: AbsensiResponse (Nama file/objek tetap, tapi hit ke /presensi)
+// ─────────────────────────────────────────────────────────────────
 
 export const AbsensiResponse = {
 
-    // ── GET semua data absensi ─────────────────
+    // 1. GET semua data presensi dari backend
+    // Endpoint backend: GET /api/presensi
     getAll: async () => {
         try {
-            const response = await AxiosConfig.get("/absensi");
-            return response.data;
-        } catch {
-            return [
-                { id_absensi: 1, nama_siswa: "Budi Santoso",   status_kehadiran: "Hadir", tanggal_absensi: "2025-05-20T07:00:00Z", kelas: "6A", mata_pelajaran: "Matematika", keterangan: "" },
-                { id_absensi: 2, nama_siswa: "Siti Rahayu",    status_kehadiran: "Izin",  tanggal_absensi: "2025-05-20T07:00:00Z", kelas: "6A", mata_pelajaran: "IPA",         keterangan: "Acara keluarga" },
-                { id_absensi: 3, nama_siswa: "Ahmad Fauzi",    status_kehadiran: "Sakit", tanggal_absensi: "2025-05-20T07:00:00Z", kelas: "6B", mata_pelajaran: "Bahasa Indonesia", keterangan: "Demam" },
-                { id_absensi: 4, nama_siswa: "Dewi Lestari",   status_kehadiran: "Alpha", tanggal_absensi: "2025-05-19T07:00:00Z", kelas: "6B", mata_pelajaran: "IPS",         keterangan: "" },
-                { id_absensi: 5, nama_siswa: "Rizky Pratama",  status_kehadiran: "Hadir", tanggal_absensi: "2025-05-19T07:00:00Z", kelas: "6A", mata_pelajaran: "Matematika", keterangan: "" },
-            ];
+            const response = await AxiosConfig.get("/presensi");
+            return response.data; // Mengembalikan object { status: 'success', data: [...] }
+        } catch (error) {
+            console.error("Gagal mengambil data, menggunakan mock data:", error);
+            
+            // Mock data disesuaikan dengan kolom riil di database Sebel SD
+            return {
+                status: "success",
+                data: [
+                    { id_presensi: 1, id_anggota: 10, tugas_ke: 1, tanggal_penilaian: "2026-05-20", status_kehadiran: "Hadir", nama_siswa: "Budi Santoso", nis_siswa: "0012345" },
+                    { id_presensi: 2, id_anggota: 11, tugas_ke: 1, tanggal_penilaian: "2026-05-20", status_kehadiran: "Izin", nama_siswa: "Siti Rahayu", nis_siswa: "0012346" },
+                    { id_presensi: 3, id_anggota: 12, tugas_ke: 2, tanggal_penilaian: "2026-05-21", status_kehadiran: "Sakit", nama_siswa: "Ahmad Fauzi", nis_siswa: "0012347" }
+                ]
+            };
         }
     },
 
-    // ── GET absensi berdasarkan ID ─────────────
-    getById: async (id) => {
-        const response = await AxiosConfig.get(`/absensi/${id}`);
-        return response.data;
-    },
-
-    // ── GET absensi berdasarkan siswa ──────────
-    getBySiswa: async (idSiswa) => {
-        const response = await AxiosConfig.get(`/absensi/siswa/${idSiswa}`);
-        return response.data;
-    },
-
-    // ── GET absensi berdasarkan tanggal ────────
-    getByTanggal: async (tanggal) => {
-        // tanggal format: "YYYY-MM-DD"
-        const response = await AxiosConfig.get(`/absensi/tanggal/${tanggal}`);
-        return response.data;
-    },
-
-    delete: async (id) => {
+    // 2. GET presensi berdasarkan Rombel
+    // Endpoint backend: GET /api/presensi/rombel/:id_rombel
+    getByRombel: async (idRombel) => {
         try {
-            const response = await AxiosConfig.delete(`/absensi/${id}`);
-            return response.data;
-        } catch {
-            return { success: true };
+            const response = await AxiosConfig.get(`/presensi/rombel/${idRombel}`);
+            return response.data; // Mengembalikan object { status: 'success', data: [...] }
+        } catch (error) {
+            console.error(`Gagal mengambil data rombel ${idRombel}:`, error);
+            throw error;
         }
     }
 };
-
