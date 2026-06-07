@@ -1,8 +1,9 @@
-// backend/Routes/BaseRoute.js
+// backend/Routes/RouteControl.js
 import express from "express";
 import Login from "./Login.js"
 import NotifikasiRoute from "./NotifikasiRoute.js";
 import DashboardRoute from "./Aris/DashboardRoute.js";
+import PresensiRoute from "./Muadz/PresensiRoute.js"
 
 /**
  * CONTOH: TINGGAL IMPORT AJA
@@ -23,5 +24,6 @@ const BaseRouter = express.Router();
 BaseRouter.use("/auth", Login);
 BaseRouter.use("/notifikasi", NotifikasiRoute);
 BaseRouter.use("/dashboard", DashboardRoute);
+BaseRouter.use("/presensi", PresensiRoute);
 
 export default BaseRouter;
