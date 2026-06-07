@@ -2,22 +2,13 @@
 import { AxiosConfig } from "../AxiosConfig";
 import { API_URL } from "../API_URL";
 
-// ─────────────────────────────────────────────────────────────────
-// API: AbsensiResponse (Nama file/objek tetap, tapi hit ke /presensi)
-// ─────────────────────────────────────────────────────────────────
-
 export const AbsensiResponse = {
-
-    // 1. GET semua data presensi dari backend
-    // Endpoint backend: GET /api/presensi
     getAll: async () => {
         try {
             const response = await AxiosConfig.get("/presensi");
-            return response.data; // Mengembalikan object { status: 'success', data: [...] }
+            return response.data;
         } catch (error) {
             console.error("Gagal mengambil data, menggunakan mock data:", error);
-            
-            // Mock data disesuaikan dengan kolom riil di database Sebel SD
             return {
                 status: "success",
                 data: [
@@ -29,14 +20,24 @@ export const AbsensiResponse = {
         }
     },
 
-    // 2. GET presensi berdasarkan Rombel
-    // Endpoint backend: GET /api/presensi/rombel/:id_rombel
     getByRombel: async (idRombel) => {
         try {
             const response = await AxiosConfig.get(`/presensi/rombel/${idRombel}`);
-            return response.data; // Mengembalikan object { status: 'success', data: [...] }
+            return response.data;
         } catch (error) {
             console.error(`Gagal mengambil data rombel ${idRombel}:`, error);
+            throw error;
+        }
+    },
+
+    // 🛠️ TAMBAHKAN FUNGSI INI AGAR TOMBOL DELETE BERFUNGSI
+    delete: async (idPresensi) => {
+        try {
+            // Asumsi endpoint delete di backend adalah DELETE /api/presensi/:id
+            const response = await AxiosConfig.delete(`/presensi/${idPresensi}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Gagal menghapus data presensi ${idPresensi}:`, error);
             throw error;
         }
     }
