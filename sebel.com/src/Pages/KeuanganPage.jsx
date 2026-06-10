@@ -1,11 +1,51 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { KasFitur } from "../API/EriskaFitur/KasResponse";
-import { TabunganFitur } from "../API/EriskaFitur/TabunganResponse";
-import { AxiosConfig } from "../API/AxiosConfig";
 import { DashboardLayout } from "../Components/DashboardLayout";
 
-// DeleteButton di-inline agar tidak bergantung pada path eksternal
+// ─── Data Dummy Awal (State Mocking) ─────────────────────────────────────────
+
+const DUMMY_KAS_AWAL = {
+    saldoKas: 750000,
+    pemasukkan: [
+        { idPemasukkanKas: 1, tanggalMasuk: "2026-06-01", jumlahMasuk: 500000, keterangan: "Kas bulanan Mei" },
+        { idPemasukkanKas: 2, tanggalMasuk: "2026-06-05", jumlahMasuk: 400000, keterangan: "Sumbangan sukarela" },
+    ],
+    pengeluaran: [
+        { idPengeluaranKas: 1, tanggalKeluar: "2026-06-02", jumlahKeluar: 150000, keterangan: "Beli sapu dan kemoceng" },
+    ]
+};
+
+const DUMMY_TABUNGAN_AWAL = [
+    { idTabungan: 101, namaSiswa: "Ahmad Rifai", saldoTotal: 250000 },
+    { idTabungan: 102, namaSiswa: "Citra Lestari", saldoTotal: 500000 },
+    { idTabungan: 103, namaSiswa: "Dewi Sartika", saldoTotal: 150000 },
+];
+
+const DUMMY_RIWAYAT_TABUNGAN = {
+    101: {
+        setor: [{ idPemasukkan: 1, tanggalMasuk: "2026-06-01", jumlahMasuk: 250000, keterangan: "Setoran awal" }],
+        tarik: []
+    },
+    102: {
+        setor: [{ idPemasukkan: 2, tanggalMasuk: "2026-06-02", jumlahMasuk: 500000, keterangan: "Tabungan beasiswa" }],
+        tarik: []
+    },
+    103: {
+        setor: [{ idPemasukkan: 3, tanggalMasuk: "2026-06-03", jumlahMasuk: 200000, keterangan: "Uang saku" }],
+        tarik: [{ idPengeluaran: 1, tanggalKeluar: "2026-06-04", jumlahKeluar: 50000, keterangan: "Keperluan mendesak" }]
+    }
+};
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const formatRupiah = (angka) =>
+    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka ?? 0);
+
+const formatTanggal = (iso) =>
+    iso ? new Date(iso).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : "-";
+
+// ─── Sub-Components ──────────────────────────────────────────────────────────
+
 const DeleteButton = ({ id, onDelete }) => (
     <button
         onClick={() => onDelete(id)}
@@ -20,17 +60,6 @@ const DeleteButton = ({ id, onDelete }) => (
     </button>
 );
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-const formatRupiah = (angka) =>
-    new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(angka ?? 0);
-
-const formatTanggal = (iso) =>
-    iso ? new Date(iso).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : "-";
-
-// ─── Sub-Components ──────────────────────────────────────────────────────────
-
-/** Kartu saldo ringkasan */
 const SaldoCard = ({ label, nominal, warna }) => (
     <div style={{
         background: warna || "#f0fdf4",
@@ -45,7 +74,6 @@ const SaldoCard = ({ label, nominal, warna }) => (
     </div>
 );
 
-/** Tabel riwayat transaksi generik */
 const TabelRiwayat = ({ data, kolom, onHapus, isGuru }) => (
     <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -56,7 +84,7 @@ const TabelRiwayat = ({ data, kolom, onHapus, isGuru }) => (
                             {k.label}
                         </th>
                     ))}
-                    {isGuru && <th style={{ padding: "10px 14px", color: "#475569" }}>Aksi</th>}
+                    {isGuru && <th style={{ padding: "10px 14px", color: "#475569", textAlign: "left" }}>Aksi</th>}
                 </tr>
             </thead>
             <tbody>
@@ -88,7 +116,6 @@ const TabelRiwayat = ({ data, kolom, onHapus, isGuru }) => (
     </div>
 );
 
-/** Form input transaksi (pemasukkan / pengeluaran) */
 const FormTransaksi = ({ onSubmit, loading, tipe }) => {
     const [jumlah, setJumlah] = useState("");
     const [keterangan, setKeterangan] = useState("");
@@ -151,76 +178,63 @@ const inputStyle = {
 
 // ─── Section: Kas Kelas ──────────────────────────────────────────────────────
 
-const SectionKas = ({ idKas, idGuru, isGuru }) => {
-    const [saldo, setSaldo] = useState(0);
-    const [pemasukkan, setPemasukkan] = useState([]);
-    const [pengeluaran, setPengeluaran] = useState([]);
+const SectionKas = ({ isGuru, kasData, setKasData }) => {
     const [loading, setLoading] = useState(false);
-    const [loadData, setLoadData] = useState(true);
 
-    const fetchData = useCallback(async () => {
-        if (!idKas) return;
-        setLoadData(true);
-        try {
-            const [kasData, masuk, keluar] = await Promise.all([
-                KasFitur.getKasByRombel(idKas),
-                KasFitur.getRiwayatPemasukkan(idKas),
-                KasFitur.getRiwayatPengeluaran(idKas),
-            ]);
-            setSaldo(kasData?.saldoKas ?? 0);
-            setPemasukkan(Array.isArray(masuk) ? masuk : []);
-            setPengeluaran(Array.isArray(keluar) ? keluar : []);
-        } catch (err) {
-            console.error("Gagal fetch data kas:", err);
-        } finally {
-            setLoadData(false);
-        }
-    }, [idKas]);
-
-    useEffect(() => { fetchData(); }, [fetchData]);
-
-    const handleTambahMasuk = async ({ jumlah, keterangan }) => {
+    const handleTambahMasuk = ({ jumlah, keterangan }) => {
         setLoading(true);
-        try {
-            await KasFitur.tambahPemasukkan({ id_kas: idKas, id_guru: idGuru, jumlah_masuk: jumlah, keterangan });
-            await fetchData();
-        } catch (err) {
-            alert("Gagal menambah pemasukkan: " + (err?.message || JSON.stringify(err)));
-        } finally {
-            setLoading(false);
-        }
+        const baru = {
+            idPemasukkanKas: Date.now(),
+            tanggalMasuk: new Date().toISOString().split('T')[0],
+            jumlahMasuk: jumlah,
+            keterangan: keterangan || "Tanpa keterangan"
+        };
+        setKasData(prev => ({
+            ...prev,
+            saldoKas: prev.saldoKas + jumlah,
+            pemasukkan: [baru, ...prev.pemasukkan]
+        }));
+        setLoading(false);
     };
 
-    const handleTambahKeluar = async ({ jumlah, keterangan }) => {
+    const handleTambahKeluar = ({ jumlah, keterangan }) => {
         setLoading(true);
-        try {
-            await KasFitur.tambahPengeluaran({ id_kas: idKas, id_guru: idGuru, jumlah_keluar: jumlah, keterangan });
-            await fetchData();
-        } catch (err) {
-            alert("Gagal menambah pengeluaran: " + (err?.message || JSON.stringify(err)));
-        } finally {
-            setLoading(false);
-        }
+        const baru = {
+            idPengeluaranKas: Date.now(),
+            tanggalKeluar: new Date().toISOString().split('T')[0],
+            jumlahKeluar: jumlah,
+            keterangan: keterangan || "Tanpa keterangan"
+        };
+        setKasData(prev => ({
+            ...prev,
+            saldoKas: prev.saldoKas - jumlah,
+            pengeluaran: [baru, ...prev.pengeluaran]
+        }));
+        setLoading(false);
     };
 
-    const handleHapusMasuk = async (id) => {
+    const handleHapusMasuk = (id) => {
         if (!window.confirm("Hapus data pemasukkan ini?")) return;
-        try {
-            await KasFitur.hapusPemasukkan(id);
-            await fetchData();
-        } catch (err) {
-            alert("Gagal hapus: " + (err?.message || JSON.stringify(err)));
-        }
+        const target = kasData.pemasukkan.find(p => p.idPemasukkanKas === id);
+        const minusSaldo = target ? target.jumlahMasuk : 0;
+
+        setKasData(prev => ({
+            ...prev,
+            saldoKas: prev.saldoKas - minusSaldo,
+            pemasukkan: prev.pemasukkan.filter(p => p.idPemasukkanKas !== id)
+        }));
     };
 
-    const handleHapusKeluar = async (id) => {
+    const handleHapusKeluar = (id) => {
         if (!window.confirm("Hapus data pengeluaran ini?")) return;
-        try {
-            await KasFitur.hapusPengeluaran(id);
-            await fetchData();
-        } catch (err) {
-            alert("Gagal hapus: " + (err?.message || JSON.stringify(err)));
-        }
+        const target = kasData.pengeluaran.find(p => p.idPengeluaranKas === id);
+        const plusSaldo = target ? target.jumlahKeluar : 0;
+
+        setKasData(prev => ({
+            ...prev,
+            saldoKas: prev.saldoKas + plusSaldo,
+            pengeluaran: prev.pengeluaran.filter(p => p.idPengeluaranKas !== id)
+        }));
     };
 
     const kolomMasuk = [
@@ -234,22 +248,18 @@ const SectionKas = ({ idKas, idGuru, isGuru }) => {
         { key: "keterangan", label: "Keterangan" },
     ];
 
-    if (loadData) return <p style={{ color: "#94a3b8", padding: 20 }}>Memuat data kas...</p>;
-
     return (
         <div>
-            {/* Ringkasan Saldo */}
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
-                <SaldoCard label="Saldo Kas Kelas" nominal={saldo} warna="#f0fdf4" />
+                <SaldoCard label="Saldo Kas Kelas" nominal={kasData.saldoKas} warna="#f0fdf4" />
                 <SaldoCard label="Total Pemasukkan"
-                    nominal={pemasukkan.reduce((a, b) => a + Number(b.jumlahMasuk || 0), 0)}
+                    nominal={kasData.pemasukkan.reduce((a, b) => a + Number(b.jumlahMasuk || 0), 0)}
                     warna="#eff6ff" />
                 <SaldoCard label="Total Pengeluaran"
-                    nominal={pengeluaran.reduce((a, b) => a + Number(b.jumlahKeluar || 0), 0)}
+                    nominal={kasData.pengeluaran.reduce((a, b) => a + Number(b.jumlahKeluar || 0), 0)}
                     warna="#fff7ed" />
             </div>
 
-            {/* Form Input - hanya guru */}
             {isGuru && (
                 <div style={{ marginBottom: 24 }}>
                     <FormTransaksi onSubmit={handleTambahMasuk} loading={loading} tipe="masuk" />
@@ -257,22 +267,20 @@ const SectionKas = ({ idKas, idGuru, isGuru }) => {
                 </div>
             )}
 
-            {/* Riwayat Pemasukkan */}
             <div style={{ marginBottom: 24 }}>
                 <h4 style={{ margin: "0 0 10px", color: "#16a34a", fontSize: 14 }}>📥 Riwayat Pemasukkan Kas</h4>
                 <TabelRiwayat
-                    data={pemasukkan.map((d) => ({ ...d, id: d.id_pemasukkan_kas }))}
+                    data={kasData.pemasukkan.map((d) => ({ ...d, id: d.idPemasukkanKas }))}
                     kolom={kolomMasuk}
                     onHapus={handleHapusMasuk}
                     isGuru={isGuru}
                 />
             </div>
 
-            {/* Riwayat Pengeluaran */}
             <div>
                 <h4 style={{ margin: "0 0 10px", color: "#dc2626", fontSize: 14 }}>📤 Riwayat Pengeluaran Kas</h4>
                 <TabelRiwayat
-                    data={pengeluaran.map((d) => ({ ...d, id: d.id_pengeluaran_kas }))}
+                    data={kasData.pengeluaran.map((d) => ({ ...d, id: d.idPengeluaranKas }))}
                     kolom={kolomKeluar}
                     onHapus={handleHapusKeluar}
                     isGuru={isGuru}
@@ -284,109 +292,127 @@ const SectionKas = ({ idKas, idGuru, isGuru }) => {
 
 // ─── Section: Tabungan Siswa ─────────────────────────────────────────────────
 
-const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
-    const [listTabungan, setListTabungan] = useState([]);
+const SectionTabungan = ({ isGuru, listTabungan, setListTabungan, riwayatTabungan, setRiwayatTabungan }) => {
     const [selected, setSelected] = useState(null);
-    const [riwayatSetor, setRiwayatSetor] = useState([]);
-    const [riwayatTarik, setRiwayatTarik] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [loadData, setLoadData] = useState(true);
-    const [loadRiwayat, setLoadRiwayat] = useState(false);
-
-    const fetchList = useCallback(async () => {
-        if (!idRombel) return;
-        setLoadData(true);
-        try {
-            const data = await TabunganFitur.getTabunganByRombel(idRombel);
-            setListTabungan(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error("Gagal fetch tabungan:", err);
-        } finally {
-            setLoadData(false);
-        }
-    }, [idRombel]);
-
-    useEffect(() => { fetchList(); }, [fetchList]);
-
-    const fetchRiwayat = async (id_tabungan) => {
-        setLoadRiwayat(true);
-        try {
-            const [setor, tarik] = await Promise.all([
-                TabunganFitur.getRiwayatSetor(id_tabungan),
-                TabunganFitur.getRiwayatTarik(id_tabungan),
-            ]);
-            setRiwayatSetor(Array.isArray(setor) ? setor : []);
-            setRiwayatTarik(Array.isArray(tarik) ? tarik : []);
-        } catch (err) {
-            console.error("Gagal fetch riwayat tabungan:", err);
-        } finally {
-            setLoadRiwayat(false);
-        }
-    };
 
     const handlePilihSiswa = (tabungan) => {
         setSelected(tabungan);
-        fetchRiwayat(tabungan.idTabungan);
     };
 
-    const handleSetor = async ({ jumlah, keterangan }) => {
+    // Ambil riwayat berdasarkan siswa yang dipilih secara real-time dari state parent
+    const currentRiwayat = riwayatTabungan[selected?.idTabungan] || { setor: [], tarik: [] };
+
+    const handleSetor = ({ jumlah, keterangan }) => {
         setLoading(true);
-        try {
-            await TabunganFitur.setorTabungan({
-                id_tabungan: selected.idTabungan,
-                id_guru: idGuru,
-                jumlah_masuk: jumlah,
-                keterangan,
-            });
-            await fetchList();
-            await fetchRiwayat(selected.idTabungan);
-            setSelected((prev) => ({ ...prev, saldo_total: Number(prev.saldoTotal) + jumlah }));
-        } catch (err) {
-            alert("Gagal setor: " + (err?.message || JSON.stringify(err)));
-        } finally {
-            setLoading(false);
-        }
+        const idSiswa = selected.idTabungan;
+        const baru = {
+            idPemasukkan: Date.now(),
+            tanggalMasuk: new Date().toISOString().split('T')[0],
+            jumlahMasuk: jumlah,
+            keterangan: keterangan || "Setor Tunai"
+        };
+
+        // Update riwayat
+        setRiwayatTabungan(prev => ({
+            ...prev,
+            [idSiswa]: {
+                ...prev[idSiswa],
+                setor: [baru, ...(prev[idSiswa]?.setor || [])]
+            }
+        }));
+
+        // Update list siswa (saldo)
+        setListTabungan(prev => prev.map(siswa => {
+            if (siswa.idTabungan === idSiswa) {
+                const updated = { ...siswa, saldoTotal: siswa.saldoTotal + jumlah };
+                setSelected(updated); // Sync panel detail
+                return updated;
+            }
+            return siswa;
+        }));
+        setLoading(false);
     };
 
-    const handleTarik = async ({ jumlah, keterangan }) => {
+    const handleTarik = ({ jumlah, keterangan }) => {
+        if (selected.saldoTotal < jumlah) {
+            alert("Saldo tidak mencukupi untuk melakukan penarikan!");
+            return;
+        }
         setLoading(true);
-        try {
-            await TabunganFitur.tarikTabungan({
-                id_tabungan: selected.idTabungan,
-                id_guru: idGuru,
-                jumlah_keluar: jumlah,
-                keterangan,
-            });
-            await fetchList();
-            await fetchRiwayat(selected.idTabungan);
-            setSelected((prev) => ({ ...prev, saldo_total: Number(prev.saldoTotal) - jumlah }));
-        } catch (err) {
-            alert("Gagal tarik: " + (err?.message || JSON.stringify(err)));
-        } finally {
-            setLoading(false);
-        }
+        const idSiswa = selected.idTabungan;
+        const baru = {
+            idPengeluaran: Date.now(),
+            tanggalKeluar: new Date().toISOString().split('T')[0],
+            jumlahKeluar: jumlah,
+            keterangan: keterangan || "Penarikan Tunai"
+        };
+
+        setRiwayatTabungan(prev => ({
+            ...prev,
+            [idSiswa]: {
+                ...prev[idSiswa],
+                tarik: [baru, ...(prev[idSiswa]?.tarik || [])]
+            }
+        }));
+
+        setListTabungan(prev => prev.map(siswa => {
+            if (siswa.idTabungan === idSiswa) {
+                const updated = { ...siswa, saldoTotal: siswa.saldoTotal - jumlah };
+                setSelected(updated);
+                return updated;
+            }
+            return siswa;
+        }));
+        setLoading(false);
     };
 
-    const handleHapusSetor = async (id) => {
+    const handleHapusSetor = (id) => {
         if (!window.confirm("Hapus data setor ini?")) return;
-        try {
-            await TabunganFitur.hapusSetor(id);
-            await fetchList();
-            await fetchRiwayat(selected.idTabungan);
-        } catch (err) {
-            alert("Gagal hapus: " + (err?.message || JSON.stringify(err)));
-        }
+        const idSiswa = selected.idTabungan;
+        const target = currentRiwayat.setor.find(s => s.idPemasukkan === id);
+        const minusJumlah = target ? target.jumlahMasuk : 0;
+
+        setRiwayatTabungan(prev => ({
+            ...prev,
+            [idSiswa]: {
+                ...prev[idSiswa],
+                setor: prev[idSiswa].setor.filter(s => s.idPemasukkan !== id)
+            }
+        }));
+
+        setListTabungan(prev => prev.map(siswa => {
+            if (siswa.idTabungan === idSiswa) {
+                const updated = { ...siswa, saldoTotal: siswa.saldoTotal - minusJumlah };
+                setSelected(updated);
+                return updated;
+            }
+            return siswa;
+        }));
     };
 
-    const handleHapusTarik = async (id) => {
+    const handleHapusTarik = (id) => {
         if (!window.confirm("Hapus data tarik ini?")) return;
-        try {
-            await TabunganFitur.hapusTarik(id);
-            await fetchList();
-            await fetchRiwayat(selected.idTabungan);
-        } catch (err) {
-            alert("Gagal hapus: " + (err?.message || JSON.stringify(err)));
-        }
+        const idSiswa = selected.idTabungan;
+        const target = currentRiwayat.tarik.find(t => t.idPengeluaran === id);
+        const plusJumlah = target ? target.jumlahKeluar : 0;
+
+        setRiwayatTabungan(prev => ({
+            ...prev,
+            [idSiswa]: {
+                ...prev[idSiswa],
+                tarik: prev[idSiswa].tarik.filter(t => t.idPengeluaran !== id)
+            }
+        }));
+
+        setListTabungan(prev => prev.map(siswa => {
+            if (siswa.idTabungan === idSiswa) {
+                const updated = { ...siswa, saldoTotal: siswa.saldoTotal + plusJumlah };
+                setSelected(updated);
+                return updated;
+            }
+            return siswa;
+        }));
     };
 
     const kolomSetor = [
@@ -400,11 +426,8 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
         { key: "keterangan", label: "Keterangan" },
     ];
 
-    if (loadData) return <p style={{ color: "#94a3b8", padding: 20 }}>Memuat data tabungan...</p>;
-
     return (
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>
-
             {/* Panel Kiri: Daftar Siswa */}
             <div style={{
                 width: 240, flexShrink: 0,
@@ -429,7 +452,7 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
                             }}
                         >
                             <p style={{ margin: 0, fontWeight: 600, fontSize: 13, color: "#1e293b" }}>
-                                {t.namaSiswa || `Siswa #${t.idAnggota}`}
+                                {t.namaSiswa}
                             </p>
                             <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>
                                 {formatRupiah(t.saldoTotal)}
@@ -453,7 +476,7 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
                 ) : (
                     <>
                         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
-                            <SaldoCard label={`Saldo — ${selected.namaSiswa || "Siswa"}`}
+                            <SaldoCard label={`Saldo — ${selected.namaSiswa}`}
                                 nominal={selected.saldoTotal} warna="#eff6ff" />
                         </div>
 
@@ -464,34 +487,24 @@ const SectionTabungan = ({ idRombel, idGuru, isGuru }) => {
                             </div>
                         )}
 
-                        {loadRiwayat ? (
-                            <p style={{ color: "#94a3b8" }}>Memuat riwayat...</p>
-                        ) : (
-                            <>
-                                <div style={{ marginBottom: 20 }}>
-                                    <h4 style={{ margin: "0 0 10px", color: "#16a34a", fontSize: 14 }}>
-                                        📥 Riwayat Setor
-                                    </h4>
-                                    <TabelRiwayat
-                                        data={riwayatSetor.map((d) => ({ ...d, id: d.idPemasukkan }))}
-                                        kolom={kolomSetor}
-                                        onHapus={handleHapusSetor}
-                                        isGuru={isGuru}
-                                    />
-                                </div>
-                                <div>
-                                    <h4 style={{ margin: "0 0 10px", color: "#dc2626", fontSize: 14 }}>
-                                        📤 Riwayat Tarik
-                                    </h4>
-                                    <TabelRiwayat
-                                        data={riwayatTarik.map((d) => ({ ...d, id: d.idPengeluaran }))}
-                                        kolom={kolomTarik}
-                                        onHapus={handleHapusTarik}
-                                        isGuru={isGuru}
-                                    />
-                                </div>
-                            </>
-                        )}
+                        <div style={{ marginBottom: 20 }}>
+                            <h4 style={{ margin: "0 0 10px", color: "#16a34a", fontSize: 14 }}>📥 Riwayat Setor</h4>
+                            <TabelRiwayat
+                                data={currentRiwayat.setor.map((d) => ({ ...d, id: d.idPemasukkan }))}
+                                kolom={kolomSetor}
+                                onHapus={handleHapusSetor}
+                                isGuru={isGuru}
+                            />
+                        </div>
+                        <div>
+                            <h4 style={{ margin: "0 0 10px", color: "#dc2626", fontSize: 14 }}>📤 Riwayat Tarik</h4>
+                            <TabelRiwayat
+                                data={currentRiwayat.tarik.map((d) => ({ ...d, id: d.idPengeluaran }))}
+                                kolom={kolomTarik}
+                                onHapus={handleHapusTarik}
+                                isGuru={isGuru}
+                            />
+                        </div>
                     </>
                 )}
             </div>
@@ -506,53 +519,22 @@ const KeuanganPage = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("kas");
 
-    const [idGuru, setIdGuru] = useState(null);
-    const [idRombel, setIdRombel] = useState(null);
-    const [idKas, setIdKas] = useState(null);
+    // State Utama Penampung Data Dummy agar Perubahan Nilai Bersifat Reaktif
+    const [kasData, setKasData] = useState(DUMMY_KAS_AWAL);
+    const [listTabungan, setListTabungan] = useState(DUMMY_TABUNGAN_AWAL);
+    const [riwayatTabungan, setRiwayatTabungan] = useState(DUMMY_RIWAYAT_TABUNGAN);
+
     const [isGuru, setIsGuru] = useState(false);
     const [loadInit, setLoadInit] = useState(true);
-    const [errorInit, setErrorInit] = useState(null);
 
     useEffect(() => {
         if (role !== "guru" && role !== "siswa") {
             navigate("/", { replace: true });
             return;
         }
-
-        const init = async () => {
-            setLoadInit(true);
-            try {
-                const profile = await AxiosConfig.get("/auth/profile");
-
-                const guru = profile?.idGuru ?? null;
-                const rombel = profile?.idRombel ?? null;
-                const profileRole = profile?.role ?? "siswa";
-
-                setIdGuru(guru);
-                setIdRombel(rombel);
-                setIsGuru(profileRole === "guru");
-
-                if (rombel) {
-                    try {
-                        const kasData = await KasFitur.getKasByRombel(rombel);
-                        setIdKas(kasData?.idKas ?? null);
-                    } catch {
-                        setIdKas(null);
-                    }
-                }
-            } catch (err) {
-                // ── DUMMY fallback — hapus setelah backend siap ──────────
-                console.warn("API /auth/profile gagal, menggunakan data dummy.", err);
-                setIdGuru(1);
-                setIdRombel(1);
-                setIdKas(1);
-                setIsGuru(role === "guru");
-                // ── akhir dummy ──────────────────────────────────────────
-            } finally {
-                setLoadInit(false);
-            }
-        };
-        init();
+        // Pasang role berdasarkan parameter URL langsung secara dummy
+        setIsGuru(role === "guru");
+        setLoadInit(false);
     }, [role, navigate]);
 
     const tabStyle = (tab) => ({
@@ -575,17 +557,8 @@ const KeuanganPage = () => {
         </DashboardLayout>
     );
 
-    if (errorInit) return (
-        <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
-            <div style={{ padding: 24, color: "#dc2626", background: "#fef2f2", borderRadius: 12 }}>
-                ⚠️ {errorInit}
-            </div>
-        </DashboardLayout>
-    );
-
     return (
         <DashboardLayout role={role || "siswa"} activeMenu="Keuangan">
-
             {/* Tab Navigation */}
             <div style={{
                 display: "flex", borderBottom: "1px solid #e2e8f0",
@@ -607,20 +580,21 @@ const KeuanganPage = () => {
             }}>
                 {activeTab === "kas" && (
                     <SectionKas
-                        idKas={idKas}
-                        idGuru={idGuru}
                         isGuru={isGuru}
+                        kasData={kasData}
+                        setKasData={setKasData}
                     />
                 )}
                 {activeTab === "tabungan" && (
                     <SectionTabungan
-                        idRombel={idRombel}
-                        idGuru={idGuru}
                         isGuru={isGuru}
+                        listTabungan={listTabungan}
+                        setListTabungan={setListTabungan}
+                        riwayatTabungan={riwayatTabungan}
+                        setRiwayatTabungan={setRiwayatTabungan}
                     />
                 )}
             </div>
-
         </DashboardLayout>
     );
 };

@@ -6,7 +6,7 @@ import BaseModel from "../models/BaseModel.js";
 import KasModel from "../Models/System/KasModel.js"; 
 import PemasukkanKasModel from "../Models/System/PemasukkanKasModel.js";
 import PengeluaranKasModel from "../Models/System/PengeluaranKasModel.js";
-
+import RombelModel from "../Models/Kelas/RombelModel.js";
 import TabunganModel from "../Models/Tabungan/TabunganModel.js";
 import PemasukkanModel from "../Models/Tabungan/PemasukkanModel.js";
 import PengeluaranModel from "../Models/Tabungan/PengeluaranModel.js";
@@ -18,6 +18,51 @@ import PengeluaranModel from "../Models/Tabungan/PengeluaranModel.js";
 class KeuanganController extends BaseController {
     constructor() {
         super(null); // Tidak ada model tunggal, controller ini multi-model
+    }
+
+    async getSiswaDanWaliByIdGuru(idGuru) {
+        const results = await this.query()
+            .select([
+                'public.rombel.id_rombel',    // 👈 Ubah r. jadi public.rombel.
+                'public.rombel.kelas',        // 👈 Ubah r. jadi public.rombel.
+                'g.nama_guru AS wali_nama_guru', 
+                'g.nip AS wali_nip',
+                's.id_siswa AS siswa_id_siswa', 
+                's.nis_siswa AS siswa_nis_siswa', 
+                's.nama_siswa AS siswa_nama_siswa'
+            ])
+            // 👈 Sesuaikan semua alias r. pada kondisi JOIN dan WHERE
+            .join('public.guru g', 'public.rombel.id_guru = g.id_guru')
+            .join('public.anggota_rombel ar', 'public.rombel.id_rombel = ar.id_rombel')
+            .join('public.siswa s', 'ar.id_siswa = s.id_siswa')
+            .where('public.rombel.id_guru', '=', idGuru) 
+            .where('ar.status_siswa', '=', 'Aktif') 
+            .get();
+
+        if (!results || results.length === 0) return null;
+
+        // Proses Nesting Relasi Wali Kelas
+        let nested = QueryBuilder.nestRelation(results, 'wali', ['namaGuru', 'nip']);
+
+        // Mengelompokkan data siswa menjadi Array di dalam satu objek Rombel
+        const rombelInfo = {
+            idRombel: nested[0].idRombel,
+            kelas: nested[0].kelas,
+            wali: nested[0].wali,
+            siswa: []
+        };
+
+        nested.forEach(row => {
+            if (row.siswaIdSiswa) {
+                rombelInfo.siswa.push({
+                    idSiswa: row.siswaIdSiswa,
+                    nisSiswa: row.siswaNisSiswa,
+                    namaSiswa: row.siswaNamaSiswa
+                });
+            }
+        });
+
+        return rombelInfo;
     }
 
     // ============================================================
@@ -62,11 +107,11 @@ class KeuanganController extends BaseController {
                 return sendError(res, 400, "Parameter id_kas wajib diisi.");
             }
 
+                    // getRiwayatPemasukkanKas
             const data = await PemasukkanKasModel.query()
                 .where("id_kas", "=", id_kas)
                 .orderBy("tanggal_masuk", "DESC")
-                .get();
-
+                .get();  // 
             return sendResponse(res, 200, "Riwayat pemasukkan kas berhasil diambil.", data);
         });
     }
@@ -83,11 +128,12 @@ class KeuanganController extends BaseController {
                 return sendError(res, 400, "Parameter id_kas wajib diisi.");
             }
 
-            const data = await PengeluaranKasModel.query()
-                .where("id_kas", "=", id_kas)
-                .orderBy("tanggal_keluar", "DESC")
-                .get();
-
+            // ✅ BENAR
+            // getRiwayatPengeluaranKas
+        const data = await PengeluaranKasModel.query()
+            .where("id_kas", "=", id_kas)
+            .orderBy("tanggal_keluar", "DESC")
+            .get();  
             return sendResponse(res, 200, "Riwayat pengeluaran kas berhasil diambil.", data);
         });
     }

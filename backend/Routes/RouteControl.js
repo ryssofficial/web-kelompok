@@ -3,13 +3,10 @@ import express from "express";
 import Login from "./Login.js"
 import NotifikasiRoute from "./NotifikasiRoute.js";
 import DashboardRoute from "./Aris/DashboardRoute.js";
-<<<<<<< HEAD
 import KasRoutes from "./Eriska/KasRoutes.js";
 import TabunganRoutes from "./Eriska/TabunganRoutes.js";
-=======
 import PresensiRoute from "./Muadz/PresensiRoute.js"
->>>>>>> dac1379680c86bac6bf404a30ee196c1cc924593
-
+import KeuanganRouter from "./Eriska/KeuanganRoutes.js"
 /**
  * CONTOH: TINGGAL IMPORT AJA
  * import siswaRoutes from "./Eriska/siswaRoutes.js";
@@ -29,11 +26,11 @@ const BaseRouter = express.Router();
 BaseRouter.use("/auth", Login);
 BaseRouter.use("/notifikasi", NotifikasiRoute);
 BaseRouter.use("/dashboard", DashboardRoute);
-<<<<<<< HEAD
+
 BaseRouter.use("/kas", KasRoutes);
 BaseRouter.use("/tabungan", TabunganRoutes);
-=======
+BaseRouter.use("/keuangan", KeuanganRouter);
+
 BaseRouter.use("/presensi", PresensiRoute);
->>>>>>> dac1379680c86bac6bf404a30ee196c1cc924593
 
 export default BaseRouter;
