@@ -12,29 +12,22 @@ import { sendNotFound } from "./Utils/Response.js";
 import RouteControl from "./Routes/RouteControl.js";
 import bcrypt from 'bcrypt';
 
-const passwordSaja = 'Arisulaa01112005';
-const saltRounds = 10; // Standar keamanan bcrypt
-
-bcrypt.hash(passwordSaja, saltRounds, function(err, hash) {
-    if (err) {
-        console.error("Waduh, gagal nge-hash:", err);
-        return;
-    }
-    console.log(`\n==================================================`);
-    console.log(`Password Asli : ${passwordSaja}`);
-    console.log(`Hasil Bcrypt  : ${hash}`);
-    console.log(`==================================================\n`);
-    console.log(`Silakan salin hasil Bcrypt di atas ke database kamu!`);
-});
-
 dotenv.config();
 const app = express();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const JWT_SECRET = process.env.JWT_SECRET;
 const PORT = process.env.PORT || 5000; 
 
+const whitelist = ['http://localhost:5173'];
+
 app.use(cors({
-    origin: '*', 
+    origin: function (origin, callback) {
+        if (whitelist.indexOf(origin) !== -1 || !origin) {
+        callback(null, true); 
+        } else {
+        callback(new Error('Akses ditolak oleh CORS! Domain Anda tidak terdaftar.')); // Ditolak
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));

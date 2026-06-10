@@ -17,7 +17,7 @@ export default class BaseModel {
 
     /**
      * Membuka query builder dengan opsi menyisipkan client transaksi
-     * @param {Object} [trxClient=pool] 
+     * @param {Object} [trxClient=p ool] 
      */
     query(trxClient = pool) {
         return new QueryBuilder(this.tableName, trxClient);
