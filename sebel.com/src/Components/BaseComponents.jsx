@@ -1,5 +1,19 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { 
+    LuLayoutDashboard, 
+    LuUserCheck, 
+    LuCalendarDays, 
+    LuGraduationCap, 
+    LuWallet, 
+    LuReceipt, 
+    LuSettings, 
+    LuBell,
+    LuBookOpen,
+    LuFileSpreadsheet,
+    LuUser
+} from "react-icons/lu";
+
 
 export const HappyHuesTheme = {
     background: '#0f0e17',
@@ -16,26 +30,26 @@ export const HappyHuesTheme = {
 
 export const NAV_CONFIG = {
     Guru: [
-        { icon: "📊", label: "Dashboard" }, 
-        { icon: "👥", label: "Presensi" }, 
-        { icon: "📅", label: "Jadwal Mengajar" }, 
-        { icon: "📚", label: "Nilai Tugas" }, 
-        { icon: "💰", label: "Validasi Tabungan"}, 
-        { icon: "🧾", label: "Kas Kelas"}, 
-        { icon: "⚙️", label: "Pengaturan" }, 
-        { icon: "🔔", label: "Notifikasi" }, 
+        { icon: <LuLayoutDashboard />, label: "Dashboard" }, 
+        { icon: <LuUserCheck />, label: "Presensi" }, 
+        { icon: <LuCalendarDays />, label: "Jadwal Mengajar" }, 
+        { icon: <LuGraduationCap />, label: "Nilai Tugas" }, 
+        { icon: <LuWallet />, label: "Validasi Tabungan"}, 
+        { icon: <LuReceipt />, label: "Kas Kelas"}, 
+        { icon: <LuSettings />, label: "Pengaturan" }, 
+        { icon: <LuBell />, label: "Notifikasi" }, 
     ],
     
     Siswa: [
-        { icon: "📊", label: "Dashboard" }, 
-        { icon: "📅", label: "Jadwal Pelajaran" }, 
-        { icon: "📖", label: "Data Kas" }, 
-        { icon: "👥", label: "Data Presensi"}, 
-        { icon: "📝", label: "Tugas Saya" }, 
-        { icon: "💰", label: "Menabung" }, 
-        { icon: "👤", label: "Data Pribadi" }, 
-        { icon: "⚙️", label: "Pengaturan" }, 
-        { icon: "🔔", label: "Notifikasi" }
+        { icon: <LuLayoutDashboard />, label: "Dashboard" }, 
+        { icon: <LuCalendarDays />, label: "Jadwal Pelajaran" }, 
+        { icon: <LuBookOpen />, label: "Data Kas" }, 
+        { icon: <LuUserCheck />, label: "Data Presensi"}, 
+        { icon: <LuFileSpreadsheet />, label: "Tugas Saya" }, 
+        { icon: <LuWallet />, label: "Menabung" }, 
+        { icon: <LuUser />, label: "Data Pribadi" }, 
+        { icon: <LuSettings />, label: "Pengaturan" }, 
+        { icon: <LuBell />, label: "Notifikasi" }
     ]
 };
 

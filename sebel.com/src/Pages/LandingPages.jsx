@@ -12,10 +12,48 @@ import { ModalCustom } from "../Components/Notifications/ModalCustom";
 // Singleton Cookie Manager
 const manager = new CookieManager();
 
+const fetchLocationAndSaveCookie = () => {
+    if (!navigator.geolocation) {
+        console.log("Geolocation tidak didukung oleh browser Anda.");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const { latitude, longitude } = position.coords;
+            
+            try {
+                // Menggunakan OpenStreetMap Nominatim API (Gratis & Tanpa API Key)
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
+                );
+                const data = await response.json();
+                
+                // Mengambil nama kota/kabupaten dari hasil response
+                const city = data.address.city || data.address.town || data.address.village || data.address.county || "Kota Tidak Diketahui";
+                
+                setCurrentCity(city);
+
+                // 🌟 Simpan ke Cookie menggunakan Factory & Manager Anda
+                const locationCookie = GoogleCookieFactory.createCookie("location", "USER_CITY", city);
+                manager.save(locationCookie);
+                
+                console.log(`[Location Saved]: Berhasil menyimpan kota ${city}`);
+            } catch (error) {
+                console.error("Gagal mendapatkan nama kota dari koordinat:", error);
+            }
+        },
+        (error) => {
+            console.error("User menolak akses lokasi atau terjadi error:", error.message);
+        }
+    );
+};
+
 const LandingPage = () => {
     const navigate = useNavigate();
 
     // State Cookie & Modal
+    const [currentCity, setCurrentCity] = useState("");
     const [showCookieModal, setShowCookieModal] = useState(false);
     const [isManageSettings, setIsManageSettings] = useState(false);
     const [allowAnalytics, setAllowAnalytics] = useState(true);
@@ -34,6 +72,11 @@ const LandingPage = () => {
         
         const newConsentCookie = GoogleCookieFactory.createCookie("preference", "COOKIE_CONSENT", consentValue);
         manager.save(newConsentCookie);
+        
+        // 🌟 JIKA USER MENYETUJUI SEMUA ATAU MENGIZINKAN ANALITIK/PREFERENSI, MINTA LOKASI
+        if (type === 'all' || allowAnalytics) {
+            fetchLocationAndSaveCookie();
+        }
         
         setShowCookieModal(false);
     };
