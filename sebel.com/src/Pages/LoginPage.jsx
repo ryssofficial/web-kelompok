@@ -72,15 +72,10 @@ export default function LoginPage() {
         
         try {
             const responseData = isSiswa ? await LoginResponse.siswaLogin(identifier, password) : await LoginResponse.guruLogin(identifier, password);
-
-            const authCookie = new CookieBuilder("token", responseData.token)
-                .setDuration(1)
-                .makeSecure()
-                .setSameSite("Lax")
-                .build();
             
-            cookieManager.save(authCookie);
-            localStorage.setItem("user", JSON.stringify(responseData.user));
+            const { token, user } = responseData.data;
+            cookieManager.save(new CookieBuilder("token", token).setDuration(1).makeSecure().setSameSite("Lax").build());
+            localStorage.setItem("user", JSON.stringify(user));
             setNotification({ type: 'success', title: 'Login Berhasil', message: `Selamat datang, ${isSiswa ? 'Siswa' : 'Guru'}!` });
             setTimeout(() => { navigate(isSiswa ? '/siswa/dashboard' : '/guru/dashboard'); }, 1000);
         } catch (error) { // 🌟 Samakan namanya menjadi 'error'
@@ -103,26 +98,39 @@ export default function LoginPage() {
     const handleGoogleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             try {
-                const data = await LoginResponse.googleLogin(tokenResponse.access_token);
-                const googleAuthCookie = new CookieBuilder("token", data.token)
+                const responseData = await LoginResponse.googleLogin(tokenResponse.access_token);
+                const internalToken = responseData.data.token;
+                const userData = responseData.data.user;
+                const googleAuthCookie = new CookieBuilder("token", internalToken)
                     .setDuration(1)
                     .makeSecure()
                     .setSameSite("Lax")
                     .build();
 
                 cookieManager.save(googleAuthCookie);
-                localStorage.setItem("user", JSON.stringify(data.user));
-                setNotification({type: "success", title: "Login Google Berhasil", message: `Selamat datang, ${data.user.nama}!`, });
+                localStorage.setItem("user", JSON.stringify(userData));
+                setNotification({
+                    type: "success", 
+                    title: "Login Google Berhasil", 
+                    message: `Selamat datang, ${userData.nama}!`, 
+                });
+                
                 setTimeout(() => navigate("/guru/dashboard"), 1000);
             } catch (err) {
                 setNotification({
                     type: "error",
                     title: "Login Gagal",
-                    message: typeof err === 'string' ? err : (err.message || "Terjadi kesalahan."),
+                    message: typeof err === 'string' ? err : (err.response?.data?.message || err.message || "Terjadi kesalahan."),
                 });
             }
         },
-        onError: () => { setNotification({ type: "error", title: "Login Dibatalkan", message: "Proses login Google gagal atau dibatalkan.", }); },
+        onError: () => { 
+            setNotification({ 
+                type: "error", 
+                title: "Login Dibatalkan", 
+                message: "Proses login Google gagal atau dibatalkan.", 
+            }); 
+        },
         flow: "implicit",
     });
 
@@ -203,7 +211,7 @@ export default function LoginPage() {
                                     <div style={{ flex: 1, height: '2px', backgroundColor: HappyHuesTheme.stroke }}></div>
                                 </div>
 
-                                <GoogleButton onClick={() => handleGoogleLogin()} />
+                                <GoogleButton onClick={() => {handleGoogleLogin(); console.log('Klik tombol Login google'); }} />
                             </>
                         )}
                     </StyledCard>

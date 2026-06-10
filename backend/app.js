@@ -12,7 +12,7 @@ import { sendNotFound } from "./Utils/Response.js";
 import RouteControl from "./Routes/RouteControl.js";
 import bcrypt from 'bcrypt';
 
-const passwordSaja = 'ramadhani6';
+const passwordSaja = 'Arisulaa01112005';
 const saltRounds = 10; // Standar keamanan bcrypt
 
 bcrypt.hash(passwordSaja, saltRounds, function(err, hash) {
@@ -44,7 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', RouteControl);
 app.use((req, res) => sendNotFound(res));
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`=============================================================`);
     console.log(`== 🚀 Backend SEBEL berjalan di: http://localhost:${PORT}     ==`);
     console.log(`== 🔓 JWT TOKEN SIAP DIGUNAKAN                             ==`);
