@@ -18,7 +18,7 @@ export default function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/" element={<LoginPage />} />
+                <Route path="/login" element={<LoginPage />} />
 
                 <Route path="/:role/dashboard" element={<DashboardPage />} />
                 <Route path="/:role/notifikasi" element={<NotifikasiPage />} />
