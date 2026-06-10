@@ -7,6 +7,8 @@ import KasRoutes from "./Eriska/KasRoutes.js";
 import TabunganRoutes from "./Eriska/TabunganRoutes.js";
 import PresensiRoute from "./Muadz/PresensiRoute.js"
 import KeuanganRouter from "./Eriska/KeuanganRoutes.js"
+import NilaiTugasRoute from "./Muadz/NilaiTugasRoute.js";
+
 /**
  * CONTOH: TINGGAL IMPORT AJA
  * import siswaRoutes from "./Eriska/siswaRoutes.js";
@@ -32,5 +34,6 @@ BaseRouter.use("/tabungan", TabunganRoutes);
 BaseRouter.use("/keuangan", KeuanganRouter);
 
 BaseRouter.use("/presensi", PresensiRoute);
+BaseRouter.use("/nilai-tugas", NilaiTugasRoute);
 
 export default BaseRouter;

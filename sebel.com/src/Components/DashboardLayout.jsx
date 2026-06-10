@@ -1,84 +1,86 @@
-    import React, { useState } from "react";
-    import { useNavigate } from "react-router-dom";
-    import { HappyHuesTheme, NAV_CONFIG } from "./BaseComponents";
+import React, { useDeferredValue, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { HappyHuesTheme, NAV_CONFIG } from "./BaseComponents";
+import { LuUser, LuLogOut } from "react-icons/lu";
 
-    const SidebarItem = ({ icon, label, isActive, onClick, isDanger }) => {
-        const [isHovered, setIsHovered] = useState(false);
+const SidebarItem = ({ icon, label, isActive, onClick, isDanger }) => {
+    const [isHovered, setIsHovered] = useState(false);
 
-        let bgColor = 'transparent';
-        if (isActive) bgColor = HappyHuesTheme.button;
-        else if (isHovered && isDanger) bgColor = HappyHuesTheme.secondary;
-        else if (isHovered) bgColor = HappyHuesTheme.tertiary;
+    let bgColor = 'transparent';
+    if (isActive) bgColor = HappyHuesTheme.button;
+    else if (isHovered && isDanger) bgColor = HappyHuesTheme.secondary;
+    else if (isHovered) bgColor = HappyHuesTheme.tertiary;
 
-        const textColor = (isActive || isHovered) ? HappyHuesTheme.buttonText : HappyHuesTheme.stroke;
+    const textColor = (isActive || isHovered) ? HappyHuesTheme.buttonText : HappyHuesTheme.stroke;
 
-        return (
-            <div
-                onClick={onClick}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '15px',
-                    padding: '12px 20px',
-                    marginBottom: '10px',
-                    cursor: 'pointer',
-                    backgroundColor: bgColor,
-                    color: textColor,
-                    border: `3px solid ${isActive || isHovered ? HappyHuesTheme.stroke : 'transparent'}`,
-                    transform: isActive || isHovered ? 'translate(-4px, -4px)' : 'none',
-                    boxShadow: isActive || isHovered ? `4px 4px 0px ${HappyHuesTheme.stroke}` : 'none',
-                    transition: 'all 0.15s ease-in-out',
-                    fontWeight: 'bold',
-                    borderRadius: '4px'
-                }}
-            >
-                <span style={{ fontSize: '22px' }}>{icon}</span>
-                <span style={{ fontSize: '15px', letterSpacing: '0.5px' }}>{label}</span>
-            </div>
-        );
-    };
+    return (
+        <div
+            onClick={onClick}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px',
+                padding: '12px 20px',
+                marginBottom: '10px',
+                cursor: 'pointer',
+                backgroundColor: bgColor,
+                color: textColor,
+                border: `3px solid ${isActive || isHovered ? HappyHuesTheme.stroke : 'transparent'}`,
+                transform: isActive || isHovered ? 'translate(-4px, -4px)' : 'none',
+                boxShadow: isActive || isHovered ? `4px 4px 0px ${HappyHuesTheme.stroke}` : 'none',
+                transition: 'all 0.15s ease-in-out',
+                fontWeight: 'bold',
+                borderRadius: '4px'
+            }}
+        >
+            <span style={{ fontSize: '22px' }}>{icon}</span>
+            <span style={{ fontSize: '15px', letterSpacing: '0.5px' }}>{label}</span>
+        </div>
+    );
+};
 
-    export const DashboardLayout = ({ role, children, activeMenu }) => {
-        const navigate = useNavigate();
-        const menus = NAV_CONFIG[role] || [];
+export const DashboardLayout = ({ role, children, activeMenu }) => {
+    const navigate = useNavigate();
+    const menus = NAV_CONFIG[role] || [];
+    const userRow = localStorage.getItem('user');
+    const user = JSON.parse(userRow);
 
-        return (
-            <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: HappyHuesTheme.background, color: HappyHuesTheme.stroke }}>
-                <aside style={{
-                    width: '300px',
-                    backgroundColor: HappyHuesTheme.main,
-                    borderRight: `6px solid ${HappyHuesTheme.stroke}`,
-                    padding: '30px 20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    position: 'fixed',
-                    height: '100vh',
-                    zIndex: 100,
-                    boxSizing: 'border-box'
+    return (
+        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: HappyHuesTheme.background, color: HappyHuesTheme.stroke }}>
+            <aside style={{
+                width: '300px',
+                backgroundColor: HappyHuesTheme.main,
+                borderRight: `6px solid ${HappyHuesTheme.stroke}`,
+                padding: '30px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'fixed',
+                height: '100vh',
+                zIndex: 100,
+                boxSizing: 'border-box'
+            }}>
+                <div style={{ 
+                    marginBottom: '40px',
+                    padding: '20px 15px',
+                    backgroundColor: HappyHuesTheme.highlight,
+                    border: `4px solid ${HappyHuesTheme.stroke}`,
+                    boxShadow: `6px 6px 0px ${HappyHuesTheme.stroke}`,
+                    textAlign: 'center',
+                    transform: 'rotate(-1deg)'
                 }}>
-                    <div style={{ 
-                        marginBottom: '40px',
-                        padding: '20px 15px',
-                        backgroundColor: HappyHuesTheme.highlight,
-                        border: `4px solid ${HappyHuesTheme.stroke}`,
-                        boxShadow: `6px 6px 0px ${HappyHuesTheme.stroke}`,
-                        textAlign: 'center',
-                        transform: 'rotate(-1deg)'
-                    }}>
-                        <h2 style={{ margin: 0, fontSize: '26px', color: HappyHuesTheme.buttonText, letterSpacing: '1px' }}>
-                            ⚡ SMART
-                        </h2>
-                        <p style={{ margin: '5px 0 0 0', fontWeight: '900', letterSpacing: '3px', fontSize: '13px', color: HappyHuesTheme.stroke }}>
-                            SCHOOL PANEL
-                        </p>
-                    </div>
-
-                    <nav style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '5px' }}>
-                        {menus.map((item, index) => (
-                            <SidebarItem
-                                key={index}
+                    <h2 style={{ margin: 0, fontSize: '26px', color: HappyHuesTheme.buttonText, letterSpacing: '1px' }}>
+                        SMART
+                    </h2>
+                    <p style={{ margin: '5px 0 0 0', fontWeight: '900', letterSpacing: '3px', fontSize: '13px', color: HappyHuesTheme.stroke }}>
+                        SCHOOL PANEL
+                    </p>
+                </div>
+                <nav style={{ flexGrow: 1, overflowY: 'auto', paddingRight: '5px' }}>
+                    {menus.map((item, index) => (
+                        <SidebarItem
+                            key={index}
                                 icon={item.icon}
                                 label={item.label}
                                 isActive={activeMenu === item.label}
@@ -93,13 +95,13 @@
 
                     <div style={{ borderTop: `4px dashed ${HappyHuesTheme.stroke}`, paddingTop: '20px', marginTop: '20px' }}>
                         <SidebarItem 
-                            icon="👤" 
+                            icon={<LuUser />}
                             label="Profil Saya" 
                             isActive={activeMenu === "Profil Saya"} 
                             onClick={() => {navigate(`/${role.toLowerCase()}/profil`)}}
                         />
                         <SidebarItem 
-                            icon="🚪" 
+                            icon={<LuLogOut />} 
                             label="Keluar" 
                             isDanger={true} 
                             onClick={() => navigate('/')} 
@@ -138,7 +140,7 @@
                                 marginBottom: '10px',
                                 transform: 'rotate(2deg)'
                             }}>
-                                {role.toUpperCase()}
+                                {user.nama}
                             </div>
                             <p style={{ margin: 0, color: HappyHuesTheme.stroke, fontWeight: 'bold' }}>
                                 {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}

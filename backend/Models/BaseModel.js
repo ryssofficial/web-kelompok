@@ -17,7 +17,11 @@ export default class BaseModel {
 
     /**
      * Membuka query builder dengan opsi menyisipkan client transaksi
+<<<<<<< HEAD
      * @param {Object} [trxClient=pool] 
+=======
+     * @param {Object} [trxClient=p ool] 
+>>>>>>> 9bf985957936c2816537faa53d9005f1d4a69f4d
      */
     query(trxClient = pool) {
         return new QueryBuilder(this.tableName, trxClient);
@@ -52,6 +56,39 @@ export default class BaseModel {
         const result = await trxClient.query(sql, values);
         return CaseConverter.transformKeys(result.rows[0], CaseConverter.toCamelCase);
     }
+
+    /**
+ * Update Data Berdasarkan Primary Key
+ */
+async update(id, data, trxClient = pool) {
+    const dbData = CaseConverter.transformKeys(data, CaseConverter.toSnakeCase);
+    const safeData = this.#sanitizeData(dbData);
+
+    const columns = Object.keys(safeData);
+    const values = Object.values(safeData);
+
+    if (columns.length === 0) throw new Error('Tidak ada data valid untuk diupdate.');
+
+    const setClause = columns.map((col, i) => `${col} = $${i + 1}`).join(', ');
+    values.push(id); // $n terakhir untuk WHERE
+
+    const sql = `UPDATE ${this.tableName} SET ${setClause} WHERE ${this.primaryKey} = $${values.length} RETURNING *`;
+    const result = await trxClient.query(sql, values);
+
+    if (result.rows.length === 0) throw new Error(`Data dengan id ${id} tidak ditemukan.`);
+    return CaseConverter.transformKeys(result.rows[0], CaseConverter.toCamelCase);
+}
+
+/**
+ * Hapus Data Berdasarkan Primary Key
+ */
+async delete(id, trxClient = pool) {
+    const sql = `DELETE FROM ${this.tableName} WHERE ${this.primaryKey} = $1 RETURNING *`;
+    const result = await trxClient.query(sql, [id]);
+
+    if (result.rows.length === 0) throw new Error(`Data dengan id ${id} tidak ditemukan.`);
+    return CaseConverter.transformKeys(result.rows[0], CaseConverter.toCamelCase);
+}
 
     /**
      * 🌟 SOLUSI 3: Eksekutor Transaksi Otomatis
