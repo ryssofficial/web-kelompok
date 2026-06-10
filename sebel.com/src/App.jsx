@@ -11,7 +11,19 @@ import NilaiTugasFitur from './Pages/NilaiTugasFitur';
 
 const JadwalPageWrapper = () => { const { role } = useParams(); const roleProp = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Siswa'; return <JadwalPage role={roleProp} />; };
 const KeuanganPageWrapper = () => { const {role} = useParams(); const roleProp = role.charAt(0).toUpperCase() + role.slice(1); return <KeuanganPage role={roleProp} />; };
-const AbsensiFiturWrapper = () => { const { role } = useParams(); const roleProp = role.charAt(0).toUpperCase() + role.slice(1); return <AbsensiFitur role={roleProp} />; };
+// Update AbsensiFiturWrapper (sudah ada, tapi pastikan sama)
+const AbsensiFiturWrapper = () => {
+    const { role } = useParams();
+    const roleProp = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Siswa';
+    return <AbsensiFitur role={roleProp} />;
+};
+// Tambah/update wrapper untuk NilaiTugas
+const NilaiTugasFiturWrapper = () => {
+    const { role } = useParams();
+    const roleProp = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Siswa';
+    return <NilaiTugasFitur role={roleProp} />;
+};
+
 
 export default function App() {
     return (
@@ -31,9 +43,9 @@ export default function App() {
                 <Route path="/:role/validasi-tabungan" element={<KeuanganPageWrapper />} />
                 <Route path="/:role/data-kas" element={<KeuanganPageWrapper />} />
                 <Route path="/:role/presensi" element={<AbsensiFiturWrapper />} />
-                <Route path="/:role/data-presensi" element={<AbsensiFiturWrapper />} />
-                <Route path="/:role/tugas-saya" element={<NilaiTugasFitur />} />
-                <Route path="/:role/nilai-tugas" element={<NilaiTugasFitur />} />
+                <Route path="/:role/data-presensi" element={<AbsensiFiturWrapper />} /> 
+                <Route path="/:role/tugas-saya" element={<NilaiTugasFiturWrapper />} />
+                <Route path="/:role/nilai-tugas" element={<NilaiTugasFiturWrapper />} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

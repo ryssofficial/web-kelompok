@@ -1,21 +1,63 @@
-// src/services/AbsensiResponse.js
 import { AxiosConfig } from "../AxiosConfig";
-import { API_URL } from "../API_URL";
+
+// ─────────────────────────────────────────────
+// DB constraint: status_kehadiran = character(1)
+// hanya terima: 'H' | 'I' | 'S' | 'A'
+// ─────────────────────────────────────────────
+const STATUS_TO_CHAR = {
+    hadir: "H", h: "H",
+    izin:  "I", i: "I",
+    sakit: "S", s: "S",
+    alpha: "A", alpa: "A", a: "A",
+    // sudah char
+    H: "H", I: "I", S: "S", A: "A",
+};
+
+export const toStatusChar = (status) =>
+    STATUS_TO_CHAR[(status ?? "").trim().toLowerCase()] ??
+    STATUS_TO_CHAR[(status ?? "").trim()] ??
+    null;
+
+// ─────────────────────────────────────────────
+// Normalizer: snake_case API → camelCase UI
+// sekaligus expand char status ke label lengkap
+// ─────────────────────────────────────────────
+const CHAR_TO_LABEL = { H: "Hadir", I: "Izin", S: "Sakit", A: "Alpha" };
+
+export const normalizeAbsensiItem = (item) => {
+    const rawStatus = item.statusKehadiran ?? item.status_kehadiran ?? "";
+    const charStatus = rawStatus.trim().toUpperCase();          // "H" / "I" / "S" / "A"
+    const labelStatus = CHAR_TO_LABEL[charStatus] ?? rawStatus; // "Hadir" / "Izin" / ...
+
+    return {
+        idPresensi:       item.idPresensi       ?? item.id_presensi,
+        idAnggota:        item.idAnggota        ?? item.id_anggota,
+        namaSiswa:        item.namaSiswa        ?? item.nama_siswa        ?? "-",
+        nisSiswa:         item.nisSiswa         ?? item.nis_siswa         ?? "-",
+        tugasKe:          item.tugasKe          ?? item.tugas_ke,
+        tanggalPenilaian: item.tanggalPenilaian ?? item.tanggal_penilaian,
+        statusKehadiran:  labelStatus,  // selalu label lengkap untuk UI
+        statusChar:       charStatus,   // karakter asli dari DB
+    };
+};
 
 export const AbsensiResponse = {
+
     getAll: async () => {
         try {
             const response = await AxiosConfig.get("/presensi");
             return response.data;
         } catch (error) {
-            console.error("Gagal mengambil data, menggunakan mock data:", error);
+            console.error("Gagal mengambil data presensi:", error);
             return {
                 status: "success",
                 data: [
-                    { id_presensi: 1, id_anggota: 10, tugas_ke: 1, tanggal_penilaian: "2026-05-20", status_kehadiran: "Hadir", nama_siswa: "Budi Santoso", nis_siswa: "0012345" },
-                    { id_presensi: 2, id_anggota: 11, tugas_ke: 1, tanggal_penilaian: "2026-05-20", status_kehadiran: "Izin", nama_siswa: "Siti Rahayu", nis_siswa: "0012346" },
-                    { id_presensi: 3, id_anggota: 12, tugas_ke: 2, tanggal_penilaian: "2026-05-21", status_kehadiran: "Sakit", nama_siswa: "Ahmad Fauzi", nis_siswa: "0012347" }
-                ]
+                    { id_presensi: 1, id_anggota: 10, tugas_ke: 1, tanggal_penilaian: "2026-05-20", status_kehadiran: "H", nama_siswa: "Budi Santoso",  nis_siswa: "0012345" },
+                    { id_presensi: 2, id_anggota: 11, tugas_ke: 1, tanggal_penilaian: "2026-05-20", status_kehadiran: "I", nama_siswa: "Siti Rahayu",   nis_siswa: "0012346" },
+                    { id_presensi: 3, id_anggota: 12, tugas_ke: 2, tanggal_penilaian: "2026-05-21", status_kehadiran: "S", nama_siswa: "Ahmad Fauzi",   nis_siswa: "0012347" },
+                    { id_presensi: 4, id_anggota: 13, tugas_ke: 2, tanggal_penilaian: "2026-05-21", status_kehadiran: "H", nama_siswa: "Dewi Lestari",  nis_siswa: "0012348" },
+                    { id_presensi: 5, id_anggota: 14, tugas_ke: 3, tanggal_penilaian: "2026-05-22", status_kehadiran: "I", nama_siswa: "Rizky Pratama", nis_siswa: "0012349" },
+                ],
             };
         }
     },
@@ -30,15 +72,38 @@ export const AbsensiResponse = {
         }
     },
 
-    // 🛠️ TAMBAHKAN FUNGSI INI AGAR TOMBOL DELETE BERFUNGSI
+    // payload dari UI pakai label (Hadir/Izin/Sakit/Alpha)
+    // fungsi ini konversi ke char (H/I/S/A) sebelum kirim ke DB
+    create: async (payload) => {
+        const charStatus = toStatusChar(payload.status_kehadiran);
+        if (!charStatus) {
+            throw new Error(`Status tidak valid: "${payload.status_kehadiran}". Gunakan: Hadir / Izin / Sakit / Alpha`);
+        }
+
+        const finalPayload = { ...payload, status_kehadiran: charStatus };
+        console.log("[AbsensiResponse.create] Payload →", finalPayload);
+
+        try {
+            const response = await AxiosConfig.post("/presensi", finalPayload);
+            return response.data;
+        } catch (error) {
+            console.error("[AbsensiResponse.create] GAGAL:", {
+                status:       error?.response?.status,
+                backendMsg:   error?.response?.data?.message,
+                backendDetail: error?.response?.data?.detail,
+                payload:      finalPayload,
+            });
+            throw error;
+        }
+    },
+
     delete: async (idPresensi) => {
         try {
-            // Asumsi endpoint delete di backend adalah DELETE /api/presensi/:id
             const response = await AxiosConfig.delete(`/presensi/${idPresensi}`);
             return response.data;
         } catch (error) {
-            console.error(`Gagal menghapus data presensi ${idPresensi}:`, error);
+            console.error(`Gagal menghapus presensi ${idPresensi}:`, error);
             throw error;
         }
-    }
+    },
 };

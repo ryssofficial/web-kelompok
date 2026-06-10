@@ -7,7 +7,7 @@ class NilaiTugasModel extends BaseModel {
         super(
             'public.nilai_tugas',
             'id_nilai',
-            ['id_anggota', 'id_mapel', 'tugas_ke', 'nilai', 'id_guru', 'tanggal_input']
+            ['id_anggota', 'id_mapel', 'tugas_ke', 'nilai', 'id_guru', 'tanggal_input','catatan']
         );
     }
 

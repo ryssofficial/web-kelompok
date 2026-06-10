@@ -5,17 +5,12 @@ import BaseRoutes from '../../Services/BaseRoutes.js';
 
 const router = express.Router();
 
-/**
- * Registrasi Rute menggunakan helper BaseRoutes
- * BaseRoutes secara otomatis akan menyisipkan middleware AuthToken 
- * kecuali pada route yang mengandung "/login" atau "/register"
- */
 const routes = [
-    BaseRoutes.generate('get', '/', PresensiController.index),
-    BaseRoutes.generate('get', '/rombel/:id_rombel', PresensiController.getByRombel)
+    BaseRoutes.generate('get',    '/',                    PresensiController.index),
+    BaseRoutes.generate('get',    '/rombel/:id_rombel',   PresensiController.getByRombel),
+    BaseRoutes.generate('post',   '/',                    PresensiController.create),
+    BaseRoutes.generate('delete', '/:id',                 PresensiController.delete),
 ];
 
-// Eksekusi pendaftaran ke dalam router
 routes.forEach(route => route(router));
-
 export default router;

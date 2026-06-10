@@ -59,10 +59,10 @@ class SiswaAuthController extends BaseController {
             role: "siswa"
         };
 
-        const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: "8h" });
+        const jwtToken = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: "7d" });
 
         return sendResponse(res, 200, "Login Berhasil.", {
-            token: token,
+            token: jwtToken,
             user: jwtPayload
         });
     });
