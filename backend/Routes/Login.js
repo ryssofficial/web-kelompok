@@ -3,10 +3,7 @@ import express from "express";
 import BaseRoutes from "../Services/BaseRoutes.js"; // Memuat template pembungkus rute milik Anda
 import SiswaAuthController from "../Controllers/SiswaAuthController.js";
 import GuruAuthController from "../Controllers/GuruAuthController.js";
-<<<<<<< HEAD
-=======
 import AdminController from "../Controllers/AdminController.js";
->>>>>>> 9bf985957936c2816537faa53d9005f1d4a69f4d
 
 const expressRouter = express.Router();
 
