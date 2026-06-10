@@ -44,6 +44,10 @@ export default class QueryBuilder {
         return this;
     }
 
+        orderBy(column, direction = 'ASC') {
+        this.queryOrderBy = `ORDER BY ${column} ${direction}`;
+        return this;
+    }
     // Menentukan titik mulai data
     offset(num) {
         this.queryOffset = num;
@@ -57,6 +61,7 @@ export default class QueryBuilder {
         if (this.queryWheres.length > 0) sql += ` WHERE ${this.queryWheres.join(' AND ')}`;
         
         // Menerapkan paginasi
+        if (this.queryOrderBy) sql += ` ${this.queryOrderBy}`;
         if (this.queryLimit) sql += ` LIMIT ${this.queryLimit}`;
         if (this.queryOffset) sql += ` OFFSET ${this.queryOffset}`;
 

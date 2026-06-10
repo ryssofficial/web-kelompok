@@ -32,5 +32,54 @@ class RombelModel extends BaseModel {
         nested = QueryBuilder.nestRelation(nested, 'wali', ['nama_guru', 'nip']);
         return nested[0];
     }
+
+    /**
+     * Mengambil id_rombel, data seluruh siswa di dalamnya, dan data wali kelas
+     * untuk kebutuhan input kas dan tabungan.
+     */
+    async getSiswaDanWaliByIdGuru(idGuru) {
+        const results = await this.query()
+            .select([
+                'r.id_rombel', 
+                'r.kelas',
+                'g.nama_guru AS wali_nama_guru', 
+                'g.nip AS wali_nip',
+                's.id_siswa AS siswa_id_siswa', 
+                's.nis_siswa AS siswa_nis_siswa', 
+                's.nama_siswa AS siswa_nama_siswa'
+            ])
+            // r otomatis merujuk ke 'public.rombel' dari constructor
+            .join('public.guru g', 'r.id_guru = g.id_guru')
+            .join('public.anggota_rombel ar', 'r.id_rombel = ar.id_rombel')
+            .join('public.siswa s', 'ar.id_siswa = s.id_siswa')
+            .where('r.id_guru', '=', idGuru) // ✨ Filter langsung berdasarkan ID Guru asli
+            .where('ar.status_siswa', '=', 'Aktif') 
+            .get();
+
+        if (!results || results.length === 0) return null;
+
+        // Proses Nesting Relasi Wali Kelas (menjadi camelCase: wali.namaGuru, wali.nip)
+        let nested = QueryBuilder.nestRelation(results, 'wali', ['namaGuru', 'nip']);
+
+        // Mengelompokkan data siswa menjadi Array di dalam satu objek Rombel
+        const rombelInfo = {
+            idRombel: nested[0].idRombel,
+            kelas: nested[0].kelas,
+            wali: nested[0].wali,
+            siswa: []
+        };
+
+        nested.forEach(row => {
+            if (row.siswaIdSiswa) {
+                rombelInfo.siswa.push({
+                    idSiswa: row.siswaIdSiswa,
+                    nisSiswa: row.siswaNisSiswa,
+                    namaSiswa: row.siswaNamaSiswa
+                });
+            }
+        });
+
+        return rombelInfo;
+    }
 }
 export default new RombelModel();
