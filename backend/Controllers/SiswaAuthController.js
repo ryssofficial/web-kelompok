@@ -11,6 +11,7 @@ class SiswaAuthController extends BaseController {
     }
 
     login = async (req, res) => {
+<<<<<<< HEAD
     // Log data yang masuk (Hapus password di produksi, ini hanya untuk debug)
     console.log(`[System] Login Attempt => NIS: ${req.body.identifier}`);
     
@@ -66,6 +67,64 @@ class SiswaAuthController extends BaseController {
             user: jwtPayload
         });
     });
+=======
+        // Log data yang masuk (Hapus password di produksi, ini hanya untuk debug)
+        console.log(`[System] Login Attempt => NIS: ${req.body.identifier}`);
+        
+        await this.execute(res, async () => {
+            const { identifier, password } = req.body;
+
+            if (!identifier || !password) { return sendError(res, 400, "NIS dan password wajib diisi."); }
+
+            // Cari siswa (Gunakan identifier langsung tanpa parseInt jika NIS di DB adalah Varchar)
+            const siswa = await this.model.query()
+                .where('nis_siswa', '=', identifier) 
+                .first();
+
+            if (!siswa) {
+                console.log(`[System] NIS ${identifier} tidak ditemukan.`);
+                return sendError(res, 401, "Kredensial salah, NIS tidak terdaftar.");
+            }
+
+            console.log('[System] Data siswa ditemukan, memverifikasi password...');
+
+            // Pastikan mengambil hash dengan benar
+            const passwordHash = siswa.passwordSiswa || siswa.password_siswa; 
+            
+            if (!passwordHash) {
+                console.log('[System] Error: Kolom password di database kosong!');
+                return sendError(res, 401, "Akun belum memiliki password.");
+            }
+
+            // DEBUG: Cek isi hash yang diambil
+            console.log(`[Debug] Hash dari DB: ${passwordHash}`);
+            console.log(`Hasil dari input yang di hash ${password}`);
+            const crypt = new HashCrypt(passwordHash);
+            const isPasswordValid = await crypt.comparing(password);
+
+            if (!isPasswordValid) {
+                console.log('[System] Verifikasi Gagal: Password tidak cocok dengan Hash.');
+                return sendError(res, 401, "Kredensial salah, password tidak cocok.");
+            }
+            
+            console.log('[System] Verifikasi Berhasil! Membuat token...');
+
+            const jwtPayload = {
+                id: siswa.idSiswa || siswa.id_siswa, 
+                nis: siswa.nisSiswa || siswa.nis_siswa,
+                nama: siswa.namaSiswa || siswa.nama_siswa,
+                role: "siswa"
+            };
+
+            const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: "8h" });
+
+            return sendResponse(res, 200, "Login Berhasil.", {
+                token: token,
+                user: jwtPayload
+            });
+        }
+    );
+>>>>>>> 9bf985957936c2816537faa53d9005f1d4a69f4d
 }
 
 }
