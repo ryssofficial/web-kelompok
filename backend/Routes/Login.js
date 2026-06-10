@@ -18,7 +18,7 @@ registerLoginRoute(expressRouter);
 
 const registerAdminLogin = BaseRoutes.generate("POST", "/login/admin", AdminController.login);
 registerAdminLogin(expressRouter);
-// POST /auth/login/guru — public (FIX: route ini sebelumnya tidak ada!)
+
 const registerGuruLogin = BaseRoutes.generate("post", "/login/guru", GuruAuthController.login);
 registerGuruLogin(expressRouter);
 
