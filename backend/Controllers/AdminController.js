@@ -8,7 +8,6 @@ class adminController extends BaseController{
     constructor(){ super(AdminModel) }
 
     login = async (req, res) => {
-        // 🔥 Menggunakan emailAdmin dan passwordAdmin sesuai data yang dikirim frontend
         console.log(`[System] Login Attempt => Email: ${req.body.email}, Password: ${req.body.password}`);
         
         await this.execute(res, async () => { 
