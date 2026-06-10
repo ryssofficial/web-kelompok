@@ -3,6 +3,16 @@ import { DashboardLayout } from "../Components/DashboardLayout";
 import { StyledButton, StyledCard, HappyHuesTheme, PageContainer } from "../Components/BaseComponents";
 import { DeleteButton } from "../Components/Button/DeleteButton";
 import { NotifikasiResponse } from "../API/ArisFitur/NotifikasiResponse";
+import { useParams } from "react-router-dom";
+import { 
+    RiNotification4Fill, 
+    RiCheckDoubleLine, 
+    RiRefreshLine, 
+    RiTimeLine,
+    RiInboxArchiveLine,
+    RiAlertFill
+} from "react-icons/ri";
+
 
 const formatTanggal = (isoString) => {
     if (!isoString) return "-";
@@ -64,7 +74,8 @@ const NotifItem = ({ notif, onRead, onDelete }) => {
                         fontWeight: "bold",
                         whiteSpace: "nowrap",
                     }}>
-                        🕐 {formatTanggal(notif.tanggalNotif)}
+                        <RiTimeLine size={14} style={{ strokeWidth: 0.5 }} />
+                        {formatTanggal(notif.tanggalNotif)}
                     </span>
                 </div>
                 <p style={{
@@ -80,7 +91,11 @@ const NotifItem = ({ notif, onRead, onDelete }) => {
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-end" }}>
                 {isUnread && (
                     <StyledButton
-                        label="✓ Tandai Dibaca"
+                        label={
+                            <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                <RiCheckDoubleLine size={14} /> Tandai Dibaca
+                            </span>
+                        }
                         color={HappyHuesTheme.tertiary}
                         padding="6px 12px"
                         fontSize="11px"
@@ -99,7 +114,9 @@ const EmptyState = () => (
         padding: "60px 20px",
         color: HappyHuesTheme.paragraph,
     }}>
-        <div style={{ fontSize: "64px", marginBottom: "16px" }}>🔔</div>
+        <div style={{ marginBottom: "16px", color: HappyHuesTheme.stroke }}>
+            <RiInboxArchiveLine size={72} />
+        </div>
         <p style={{ fontWeight: "bold", fontSize: "18px", textTransform: "uppercase", letterSpacing: "1px" }}>
             Tidak Ada Notifikasi
         </p>
@@ -126,13 +143,15 @@ const LoadingSkeleton = () => (
     </div>
 );
 
-const NotifikasiPage = ({ role = "Guru" }) => {
+const NotifikasiPage = () => {
+    const { role } = useParams();
     const [notifikasi, setNotifikasi] = useState([]);
     const [filter, setFilter] = useState("semua");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
 
+    const currentRole = role ? role.charAt(0).toUpperCase() + role.slice(1) : "Guru";
     const fetchNotifikasi = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -222,10 +241,15 @@ const NotifikasiPage = ({ role = "Guru" }) => {
     });
 
     return (
-        <DashboardLayout role={role} activeMenu="Notifikasi">
+        <DashboardLayout role={currentRole} activeMenu="Notifikasi">
             <PageContainer>
                 <StyledCard
-                    title={`🔔 Notifikasi ${unreadCount > 0 ? `(${unreadCount} baru)` : ""}`}
+                    title={
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <RiNotification4Fill size={22} />
+                            <span>NOTIFIKASI {unreadCount > 0 ? `(${unreadCount} BARU)` : ""}</span>
+                        </div>
+                    }
                     accentColor={HappyHuesTheme.highlight}
                 >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
@@ -243,14 +267,22 @@ const NotifikasiPage = ({ role = "Guru" }) => {
 
                         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                             <StyledButton
-                                label={actionLoading ? "Memproses..." : "✓ Tandai Semua Dibaca"}
+                                label={
+                                    <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                        <RiCheckDoubleLine size={16} /> {actionLoading ? "Memproses..." : "Tandai Semua Dibaca"}
+                                    </span>
+                                }
                                 type="primary"
                                 onClick={handleMarkAllAsRead}
                                 disabled={unreadCount === 0 || actionLoading}
                                 style={{ opacity: unreadCount === 0 || actionLoading ? 0.5 : 1 }}
                             />
                             <StyledButton
-                                label="🔄 Refresh"
+                                label={
+                                    <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                        <RiRefreshLine size={16} /> Refresh
+                                    </span>
+                                }
                                 type="secondary"
                                 onClick={fetchNotifikasi}
                                 disabled={loading}
@@ -271,7 +303,7 @@ const NotifikasiPage = ({ role = "Guru" }) => {
                         fontWeight: "bold",
                         fontSize: "14px",
                     }}>
-                        ⚠️ {error}
+                        <RiAlertFill size={18} /> {error}
                     </div>
                 )}
 

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { DashboardLayout } from "../Components/DashboardLayout";
 import { StyledCard, DataTable, HappyHuesTheme, StyledButton } from "../Components/BaseComponents";
 import { CookieManager } from "../Services/CookiesFactory/BaseCookies";
 import { GoogleCookieFactory } from "../Services/CookiesFactory/GoogleCookieFactory";
 import { AxiosConfig } from "../API/AxiosConfig";
+import { useNavigate } from "react-router-dom";
 
 const manager = new CookieManager();
 
@@ -32,7 +33,7 @@ const StatHighlight = ({ label, value, icon, color, subtext }) => (
 export default function DashboardPage() {
     const { role } = useParams();
     const isGuru = role === 'guru';
-    
+    const navigate = useNavigate();
     const [lastVisit, setLastVisit] = useState("Ini kunjungan pertamamu!");
     const [isLoading, setIsLoading] = useState(true);
     const [dashboardData, setDashboardData] = useState({
@@ -113,9 +114,7 @@ export default function DashboardPage() {
         </div>
     );
 
-    if (isLoading) {
-        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: HappyHuesTheme.background }}><h2 style={{ color: HappyHuesTheme.stroke }}>Memuat Data Dashboard...</h2></div>;
-    }
+    if (isLoading) { return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: HappyHuesTheme.background }}><h2 style={{ color: HappyHuesTheme.stroke }}>Memuat Data Dashboard...</h2></div>; }
 
     return (
         <DashboardLayout role={isGuru ? "Guru" : "Siswa"} activeMenu="Dashboard">
@@ -166,7 +165,12 @@ export default function DashboardPage() {
                                 )) : (
                                     <p style={{ fontSize: '13px', color: HappyHuesTheme.paragraph }}>Tidak ada pemberitahuan baru.</p>
                                 )}
-                                <StyledButton label="Lihat Semua Notifikasi" fullWidth fontSize="13px" />
+                                <StyledButton 
+                                    label="Lihat Semua Notifikasi" 
+                                    fullWidth 
+                                    fontSize="13px" 
+                                    onClick={() => navigate(`/${role}/notifikasi`)} 
+                                />
                             </div>
                         </StyledCard>
                     </div>

@@ -23,6 +23,12 @@ export class GoogleCookieFactory {
                     .setSameSite("Lax")
                     .build();
 
+            case "location":
+                return new CookieBuilder(name, value)
+                    .setDuration(7)
+                    .setSameSite("Lax")
+                    .build();
+
             default:
                 return new CookieBuilder(name, value).build();
         }

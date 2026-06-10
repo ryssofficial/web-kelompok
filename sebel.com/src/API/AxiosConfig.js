@@ -8,7 +8,8 @@ const manager = new CookieManager();
 export const instance = axios.create({
     baseURL: API_URL,
     headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json', 
+        'ngrok-skip-browser-warning': 'true'
     }
 });
 
