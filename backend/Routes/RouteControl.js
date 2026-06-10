@@ -4,6 +4,7 @@ import Login from "./Login.js"
 import NotifikasiRoute from "./NotifikasiRoute.js";
 import DashboardRoute from "./Aris/DashboardRoute.js";
 import PresensiRoute from "./Muadz/PresensiRoute.js"
+import NilaiTugasRoute from "./Muadz/NilaiTugasRoute.js";
 
 /**
  * CONTOH: TINGGAL IMPORT AJA
@@ -25,5 +26,6 @@ BaseRouter.use("/auth", Login);
 BaseRouter.use("/notifikasi", NotifikasiRoute);
 BaseRouter.use("/dashboard", DashboardRoute);
 BaseRouter.use("/presensi", PresensiRoute);
+BaseRouter.use("/nilai-tugas", NilaiTugasRoute);
 
 export default BaseRouter;
