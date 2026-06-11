@@ -1,7 +1,7 @@
 # SEBEL WEB APP (Sekolah Belajar)
 Website Manajemen Sekolah Belajar, jenjang Sekolah Dasar (SD).
 
-## 🚀 Petunjuk Instalasi
+## Petunjuk Instalasi
 > [!IMPORTANT]
 > Pastikan Anda sudah menginstal **Git** dan **Node.js** di komputer Anda sebelum memulai.
 
@@ -12,5 +12,21 @@ Website Manajemen Sekolah Belajar, jenjang Sekolah Dasar (SD).
    cd web-kelompok
    npm install
 
-1. Halaman Utama (Landing Page)
-Halaman publik yang dapat diakses oleh semua pengunjung secara umum. Menampilkan informasi profil sekolah, visi-misi, berita terbaru, dan sekilas kegiatan sekolah. Pengunjung yang ingin mengakses sistem manajemen harus masuk melalui tombol Login yang tersedia.
+# Fitur-Fitur Utama
+## 1. Halaman Utama (Landing Page)
+   Halaman publik yang dapat diakses oleh semua pengunjung secara umum. Menampilkan informasi profil sekolah, visi-misi, berita terbaru, dan sekilas kegiatan sekolah. Pengunjung yang ingin mengakses sistem manajemen harus masuk melalui tombol Login yang tersedia.
+
+## 2. Autentikasi & Login Multi-User
+Sistem login yang aman dan terpisah berdasarkan role pengguna:
+- Guru: Dapat login secara manual menggunakan Email & Password, atau menggunakan integrasi Sign In with Google untuk kemudahan akses.
+- Siswa: Login menggunakan Nomor Induk Siswa (NIS) dan password yang telah didaftarkan oleh admin.
+
+## 3. Dashboard Dinamis (Siswa & Guru)
+Halaman utama setelah login yang disesuaikan secara otomatis berdasarkan hak akses:
+- Dashboard Guru: Menampilkan ringkasan jumlah kelas yang diajar, total siswa, serta grafik presensi hari ini.
+- Dashboard Siswa: Menampilkan ringkasan kehadiran pribadi, nilai tugas terakhir, dan pengumuman kelas terbaru.
+
+## 4. Presensi dan Nilai Tugas
+- Sisi Guru: Fitur untuk melakukan absensi siswa secara harian (Hadir, Izin, Sakit, Alpa) dan menginput nilai tugas/ujian berdasarkan mata pelajaran.
+- Sisi Siswa: Grafik rekapitulasi kehadiran dan transparansi nilai tugas yang bisa dipantau langsung oleh siswa (dan orang tua).
+
