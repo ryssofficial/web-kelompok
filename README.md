@@ -16,6 +16,10 @@ Website Manajemen Sekolah Belajar, jenjang Sekolah Dasar (SD).
 
 ---
 
+> [!IMPORTANT]
+> **Perizinan Cookie Terjamin**
+> Proses penyimpanan data cookie telah terjamin keamanannya. Penyimpanan cookie bersifat pribadi dan hanya digunakan sesuai dengan ketentuan pengguna.
+
 # Fitur-Fitur Utama
 ## 1. Halaman Utama (Landing Page)
    Halaman publik yang dapat diakses oleh semua pengunjung secara umum. Menampilkan informasi profil sekolah, visi-misi, berita terbaru, dan sekilas kegiatan sekolah. Pengunjung yang ingin mengakses sistem manajemen harus masuk melalui tombol Login yang tersedia.
