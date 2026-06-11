@@ -22,3 +22,55 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ==========================================
+# 1. System & Editor Files (Abaikan Sampah Editor)
+# ==========================================
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Thumbs.db
+
+# ==========================================
+# 2. Logs & Debugger (Abaikan Log Error)
+# ==========================================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================================
+# 3. Dependencies (Abaikan Node Modules)
+# ==========================================
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+frontend/sebel.com/node_modules/
+
+# ==========================================
+# 4. Build & Production Outputs
+# ==========================================
+dist/
+dist-ssr/
+build/
+.cache/
+
+# ==========================================
+# 5. Environment & Sensitive Files (Paling Krusial!)
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.local
+backend/.env
+frontend/.env
+frontend/sebel.com/.env
