@@ -17,7 +17,7 @@ Website Manajemen Sekolah Belajar, jenjang Sekolah Dasar (SD).
 ---
 
 > [!IMPORTANT]
-> **PERIZINAN COOKIES TERJAMIN: **
+> **PERIZINAN COOKIES TERJAMIN:**
 > Proses penyimpanan data cookie telah terjamin keamanannya. Penyimpanan cookie bersifat pribadi dan hanya digunakan sesuai dengan ketentuan pengguna.
 
 # Fitur-Fitur Utama
